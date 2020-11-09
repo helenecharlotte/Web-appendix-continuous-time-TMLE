@@ -448,7 +448,6 @@ est.fun <- function(dt, censoring=TRUE, intervention.A=c(1, 1), stochastic.A=FAL
         names(dt.Z.tmp) <- vars.k
 
         #-- remove impossible values of prev.jump:
-
         if (include.pseudo) { # pseudo: 
             if (numextract(k.var)>1) {
                 dt.Z.tmp <-
@@ -843,8 +842,9 @@ est.fun <- function(dt, censoring=TRUE, intervention.A=c(1, 1), stochastic.A=FAL
         if (k.var!=paste0("Y", K+1) | (length(fit.tmle)>0 & k.var==paste0("Y", K+1))) {
             # FIXME: I added the common parents + allow.cartesian
             if (!(substr(k.var, 1, 1) %in% c("L") & targeting==2 & length(fit.tmle)>0)) {
+                BY <- pa.k[pa.k %in% names(dt.Z.k) & pa.k %in% names(dt.Z.k1)]
                 dt.Z.k1 <- merge(dt.Z.k, dt.Z.k1[, -grep("pred", names(dt.Z.k1)), with=FALSE],
-                                 by=pa.k[pa.k %in% names(dt.Z.k1)], allow.cartesian=TRUE)
+                                 by=BY, allow.cartesian=TRUE)
             }
         }
 

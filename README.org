@@ -1,2 +1,66 @@
+#+superman-export-target: html
 # Web-appendix-continuous-time-TMLE
-Web appendix to Continuous-time targeted minimum loss-based estimation of estimation of intervention-specific mean outcomes
+* Welcome
+
+This is the web-appendix of our manuscript entitled 
+/Continuous-time targeted minimum loss-based estimation of estimation of intervention-specific mean outcomes./
+
+=[[provide link to arXiv]]=
+
+This repository provides the R-codes behind our empirical studies for
+proof-of-concept so that anonymous users can reproduce the results.
+
+Note that we here do not (yet) provide user-friendly code which
+implements our method in a computational efficient way ... but we are
+currently working hard on achieving exactly this. Stay tuned!
+
+* Dependencies
+
+The following R-packages are needed:
+
+#+BEGIN_SRC R  :results output raw  :exports code  :session *R* :cache yes  
+data.table, zoo, stringr, ltmle, parallel, foreach, doParallel
+#+END_SRC
+
+* Code
+
+The simulation code of this web appendix is structured as follows:
+
+-  show.R          
+-  run.R           
+-  compute-true.R  
+-  helper-functions.R  
+-  repeat-fun.R    
+
+* Simulation scenario
+
+#+BEGIN_SRC R  :results output raw drawer  :exports code  :session *R* :cache yes  
+form.dN.L <- function(L0, dN.L.prev, L.prev, A.prev){
+  -0.2-0.05*K-0.025*(K>7)-0.25*dN.L.prev-0.15*L0-0.1*(A.prev==1)+0.3*L.prev
+}
+form.dN.A <- function(L0, dN.A.prev, L.prev, A.prev, no.jumps.A, L.star){
+  -0.75-0.05*K-0.42*dN.A.prev+0.15*L0+0.3*(A.prev==2)+0.4*(A.prev==1)-0.25*L.prev
+}
+form.C <- function(L0, L.prev, A.prev, A0){
+  -3.95+(K>40)*5-0.4*K^{2/3}-0.24*(K>2 & K<=4)-0.4*(K>4 & K<=9)
+  -(K>9)*0.4*K^{1/5}+0.2*(K>25)*K^{1/4}
+  +0.1*L0+0.2*(A0==1)+0.9*(A0==2)+2.15*L.prev
+}
+form.L <- function(L0, L.prev, A.prev, A0){
+  0.5-0.4*A0+0.15*L0-0.25*(A.prev==1)+0.4*L.prev
+}
+form.A0 <- function(L0){
+  cbind(-0.1+0.25*L0)
+}
+form.A <- function(L0, L.prev, A.prev, A0){
+  cbind(-1+(1-A0)*0.6+(1-A.prev)*0.4+L.prev*0.6-0.15*(K>15)*L.prev)
+}
+form.Y <- function(L0, L.prev, A.prev, A0, no.jumps.A, dN.A.prev) {
+  -1.1-0.33*K/3*(K>2 & K<=4)-0.25*K^{2/3}-0.25*(K>4 & K<=9)-
+    (K>25 & K<45)*0.3*K^{1/5}-
+      (K>75)*0.31+(K>85)*0.2-
+      (K>25 & K<75)*0.5*K^{1/5}+0.6*(K>25)*K^{1/4}-0.25*A.prev+
+      0.4*L.prev-0.25*A0+0.35*L.prev*A0+(K>75)*0.1*A0+(K>85)*0.01*A0
+}
+#+END_SRC
+

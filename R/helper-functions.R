@@ -1,53 +1,7 @@
-runTMLE <- function(no_cores,
-                    K=10,#100              # end of follow-up (tau)
-                    run.ltmle = FALSE,     # run ltmle, OR (!!)
-                    run.ctmle2 = TRUE,     # run continuous tmle 
-                    misspecify.Q = FALSE,  # if TRUE, then misspecified model for outcome
-                    only.A0 = FALSE,       # only baseline effect (not interesting here)
-                    M = 5, # 500           # number of simulation repetitions
-                    n = 1000,              # sample size
-                    run.ctmle= FALSE,
-                    progress.bar=TRUE){
-
-    #-------------------------------------------------------------------------------------------#
-    ## true values (outputs to file)
-    #-------------------------------------------------------------------------------------------#
-    message("Computing true value of psi based on data generating mechanism")
-    x <- compute.true(n=1000,
-                      compute.true.psi=TRUE,
-                      compute.true.eic=TRUE,
-                      only.A0=only.A0)
-
-    #-------------------------------------------------------------------------------------------#
-    ## repeat simulations (parallelize)
-    #-------------------------------------------------------------------------------------------#
-    message("Estimating psi with TMLE based on observed data")
-    if (no_cores>1) registerDoParallel(no_cores)
-    if (progress.bar>0) {
-        if (!(progress.bar %in% c(1,2,3))) progress.bar <- 3
-        pb <- txtProgressBar(max = M,
-                             style = progress.bar,
-                             width=20)
-    }
-    out <- foreach(m=1:M, .errorhandling="pass"#, #.combine=list, .multicombine = TRUE
-                   ) %dopar% {
-                       setTxtProgressBar(pb, m)
-                       repeat.fun(m, K=K, n=n,
-                                  only.A0=only.A0, run.ltmle=run.ltmle, run.ctmle=run.ctmle,
-                                  run.ctmle2=run.ctmle2,
-                                  misspecify.Q=misspecify.Q)
-                   }
-
-    if (no_cores>1) stopImplicitCluster()
-    res <- list(true=x,est=out)
-    class(res) <- "watmle"
-    res
-}
-
 print.watmle <- function(x,...){
     # true values
-    psi0.A0 <- x$true$psi0.test.multi.M0
-    psi0.A1 <- x$true$psi0.test.multi.M1
+    psi0.A0 <- mean(sapply(x$true,function(x)x$psi0.test.multi.M0))
+    psi0.A1 <- mean(sapply(x$true,function(x)x$psi0.test.multi.M1))
     # estimated values
     mat <- do.call("rbind",lapply(x$est,function(e){
         if (e[1]!="ERROR"){

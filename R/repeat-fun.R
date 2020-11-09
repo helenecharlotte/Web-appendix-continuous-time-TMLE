@@ -1,51 +1,51 @@
 repeat.fun <- function(m, K, only.A0=FALSE,
                        run.ltmle=FALSE, run.ctmle=FALSE, run.ctmle2=TRUE,
                        misspecify.Q=FALSE,
-                       n=1000) {
+                       n=1000,seed) {
 
-    dt <- sim.data(1000, seed=10011+m, censoring=TRUE,
+    dt <- sim.data(1000, seed=seed, censoring=TRUE,
                    only.A0=only.A0,
                    browse=FALSE,
                    K=K)
 
     if (run.ctmle) {
         
-        (est.list.test.multi.M0 <- est.fun(copy(dt), censoring=TRUE,
+        est.list.test.multi.M0 <- est.fun(copy(dt), censoring=TRUE,
                                                   targeting=1, 
                                                   smooth.initial=TRUE,
                                                   browse3=FALSE,
                                                   intervention.A0=function(L0, A0) logit(1*(A0==0)),
                                                   intervention.A=function(L0, A0, L.prev, A.prev, A) logit(1*(A==0)),
-                                                  browse0=FALSE, misspecify.Q=misspecify.Q))
+                                                  browse0=FALSE, misspecify.Q=misspecify.Q)
 
-        (est.list.test.multi.M1 <- est.fun(copy(dt), censoring=TRUE,
+        est.list.test.multi.M1 <- est.fun(copy(dt), censoring=TRUE,
                                                   targeting=1, 
                                                   smooth.initial=TRUE,
                                                   browse5=FALSE,
                                                   intervention.A0=function(L0, A0) logit(1*(A0==1)),
                                                   intervention.A=function(L0, A0, L.prev, A.prev, A) logit(1*(A==1)),
-                                                  browse0=FALSE, misspecify.Q=misspecify.Q))
+                                                  browse0=FALSE, misspecify.Q=misspecify.Q)
 
         return(list(est.list.test.multi.M1, est.list.test.multi.M0))
 
     }
 
     if (run.ctmle2) {
-        (est.list.test.multi.target2.M0 <- est.fun(copy(dt), censoring=TRUE,
+        est.list.test.multi.target2.M0 <- est.fun(copy(dt), censoring=TRUE,
                                                    targeting=2, 
                                                    smooth.initial=TRUE,
                                                    browse5=FALSE,
                                                    intervention.A0=function(L0, A0) logit(1*(A0==0)),
                                                    intervention.A=function(L0, A0, L.prev, A.prev, A) logit(1*(A==0)),
-                                                   browse0=FALSE, misspecify.Q=misspecify.Q))
+                                                   browse0=FALSE, misspecify.Q=misspecify.Q)
 
-        (est.list.test.multi.target2.M1 <- est.fun(copy(dt), censoring=TRUE,
+        est.list.test.multi.target2.M1 <- est.fun(copy(dt), censoring=TRUE,
                                                    targeting=2, 
                                                    smooth.initial=TRUE,
                                                    browse9=FALSE,
                                                    intervention.A0=function(L0, A0) logit(1*(A0==1)),
                                                    intervention.A=function(L0, A0, L.prev, A.prev, A) logit(1*(A==1)),
-                                                   browse0=FALSE, misspecify.Q=misspecify.Q))
+                                                   browse0=FALSE, misspecify.Q=misspecify.Q)
 
         return(list(est.list.test.multi.target2.M1, est.list.test.multi.target2.M0))
     }

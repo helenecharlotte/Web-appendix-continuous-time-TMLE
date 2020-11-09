@@ -2,17 +2,17 @@
 ## true values of parameters
 #-------------------------------------------------------------------------------------------#
 
-compute.true <- function(n=1e6,compute.true.psi=FALSE,compute.true.eic=FALSE,only.A0=FALSE) {
+compute.true <- function(n=1e6,compute.true.psi=FALSE,compute.true.eic=FALSE,only.A0=FALSE,K,misspecify.Q,seed) {
     out <- NULL                         
     if (compute.true.psi) {
         
-        psi0.test.multi.M0 <- sim.data(n, seed=10011,
+        psi0.test.multi.M0 <- sim.data(n=n, seed=seed,
                                        only.A0=only.A0,
                                        intervention.A=function(L0, L.prev, A.prev, A1) cbind(logit(1)),
                                        K=K
                                        )
 
-        psi0.test.multi.M1 <- sim.data(n, seed=10011,
+        psi0.test.multi.M1 <- sim.data(n=n, seed=seed+1,
                                        only.A0=only.A0,
                                        intervention.A=function(L0, L.prev, A.prev, A1) cbind(logit(0)),
                                        K=K
@@ -23,8 +23,7 @@ compute.true <- function(n=1e6,compute.true.psi=FALSE,compute.true.eic=FALSE,onl
     if (compute.true.eic) {
 
         N <- pmin(n,1e5)
-        m <- 1
-        dt <- sim.data(N, seed=10011+m, censoring=TRUE,
+        dt <- sim.data(N, seed=seed, censoring=TRUE,
                        only.A0=only.A0,
                        browse=FALSE,
                        K=K)
