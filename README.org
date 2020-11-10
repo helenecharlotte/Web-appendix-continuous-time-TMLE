@@ -20,14 +20,80 @@ many time points.
 Below we describe the simulation scenario in terms of the actual
 R-code. 
 
-* Table 1
+* Running the code
 
-#+BEGIN_SRC R  :results output raw drawer  :exports both  :session *R* :cache yes  
+The following code uses one computing core to calculate the estimates
+of cTMLE and LTMLE using a single simulated dataset. The code that
+produces the empirical results of Table 1 and Table 2 of the
+manuscript are shown længer down.
 
+#+ATTR_LATEX: :options otherkeywords={}, deletekeywords={}
+#+BEGIN_SRC R  :results output :exports both  :session *R* :cache yes  
+# NOTE: you need to set the working directory 
+source("./examples/load.R")
+K5.ctmle <- runTMLE(no_cores=1,K=5,misspecify.init = FALSE,M = 1,n = 1000,seed=23,progress.bar=-1)
+K5.ctmle
 #+END_SRC
 
+#+RESULTS[<2020-11-10 17:35:52> 72e3fe61d47e5f294c5476822f49ee1cc8210b04]:
+:     ctmle.A1      se.A1  ctmle.A0      se.A0
+: 1: 0.4241032 0.02574778 0.5305897 0.03168532
 
-* Simulation scenario
+#+BEGIN_SRC R  :results output :exports both  :session *R* :cache yes  
+# NOTE: you need to set the working directory 
+source("./examples/load.R")
+K5.ltmle <- runLTMLE(no_cores=1,K=5,misspecify.init = FALSE,M = 1,n = 1000,seed=23,progress.bar=-1)
+K5.ltmle
+#+END_SRC
+
+#+RESULTS[<2020-11-10 17:36:09> f43f9656ddcdd88083218be5cebf6ea917011a36]:
+:     ltmle.A0      sd.A0  ltmle.A1      sd.A1
+: 1: 0.5252997 0.03648988 0.4207659 0.02741637
+
+* Making of tables 1 and 2
+
+** Table 1
+
+We provide code that produces results for =K=5= and =K=30= for LTMLE
+and our new method, cTMLE. The code in files [[examples/table1.R]] and
+[[examples/table2.R]] generate the following results:
+
+#+BEGIN_SRC R  :results output raw drawer  :exports both  :session *R* :cache yes  
+#+END_SRC
+
+*** K=5
+#+BEGIN_SRC R  :results output raw drawer  :exports both  :session *R* :cache yes  
+table1.K5.true <- readRDS(file="./examples/table1-K5-true.rds")
+table1.K5.ltmle <- readRDS(file="./examples/table1-K5-ltmle.rds")
+table1.K5.ctmle <- readRDS(file="./examples/table1-K5-ctmle.rds")
+summary(object=table1.K5.ltmle,true=table1.K5.true)
+summary(object=table1.K5.ctmle,true=table1.K5.true)
+#+END_SRC
+
+*** K=30
+#+BEGIN_SRC R  :results output raw drawer  :exports both  :session *R* :cache yes  
+table1.K30.true <- readRDS(file="./examples/table1-K30-true.rds")
+table1.K30.ltmle <- readRDS(file="./examples/table1-K30-ltmle.rds")
+table1.K30.ctmle <- readRDS(file="./examples/table1-K30-ctmle.rds")
+summary(object=table1.K30.ltmle,true=table1.K30.true)
+summary(object=table1.K30.ctmle,true=table1.K30.true)
+#+END_SRC
+
+** Table 2
+
+*** K=30
+#+BEGIN_SRC R  :results output raw drawer  :exports both  :session *R* :cache yes  
+table2.K30.true <- readRDS(file="./examples/table1-K30-true.rds")
+table2.K30.correct <- readRDS(file="./examples/table1-K30-ctmle.rds")
+table2.K30.misspecified <- readRDS(file="./examples/table2-K30-ctmle.rds")
+summary(object=table1.K30.correct,true=table1.K30.true)
+summary(object=table1.K30.misspecified,true=table1.K30.true)
+#+END_SRC
+
+* Changing the simulation scenario
+
+The current simulation setting is best described with the following
+R-code:
 
 #+BEGIN_SRC R  :results output raw drawer  :exports code  :session *R* :cache yes  
 # Step 1: baseline covariate 
@@ -115,21 +181,3 @@ Publish::org(data.table(Package=pp,Version=sapply(pp,function(x) as.character(pa
 | doParallel |  1.0.15 |
 :end:
 
-** Structure
-
-The simulation code of this web appendix is structured as follows:
-
--  R/runTMLE.R           
--  compute-true.R  
--  helper-functions.R  
--  repeat-fun.R    
-
-
-
-
-#+BEGIN_SRC R  :results output raw drawer  :exports results  :session *R* :cache yes  
-e1 <- readRDS("~/research/SoftWare/Web-appendix-continuous-time-TMLE/examples/e1.rds")
-e2 <- readRDS("~/research/SoftWare/Web-appendix-continuous-time-TMLE/examples/e2.rds")
-e1a <- readRDS("~/research/SoftWare/Web-appendix-continuous-time-TMLE/examples/e1a.rds")
-e2a <- readRDS("~/research/SoftWare/Web-appendix-continuous-time-TMLE/examples/e2a.rds")
-#+END_SRC

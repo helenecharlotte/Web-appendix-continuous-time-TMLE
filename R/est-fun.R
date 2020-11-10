@@ -2,31 +2,22 @@
 ## function that carries out initial estimation + targeting
 #-------------------------------------------------------------------------------------------#
 
-est.fun <- function(dt, censoring=TRUE, intervention.A=c(1, 1), stochastic.A=FALSE,
-                    intervention.dN.A=NULL, intervention.A0=NULL, 
+est.fun <- function(data, censoring=TRUE,
+                    intervention.A=c(1, 1), 
+                    intervention.dN.A=NULL,
+                    intervention.A0=NULL, 
                     include.pseudo=FALSE,
                     rescue=FALSE,
-                    include.pseudo2=FALSE, q0=3,
+                    include.pseudo2=FALSE,
+                    q0=3,
                     truncate.weights=TRUE,
                     targeting=1,
                     max.iter=25,
+                    eps=0.0001,
                     verbose=FALSE, 
                     smooth.initial=FALSE, 
-                    misspecify.init=FALSE,
-                    compute.true.eic=FALSE,
-                    form.A0=function(L0) cbind(-0.1+0.25*L0),
-                    form.C=function(L0, L.prev, A.prev, A0) -3.95+(K>40)*5-0.4*K^{2/3}-0.24*(K>2 & K<=4)-0.4*(K>4 & K<=9)-(K>9)*0.4*K^{1/5}+0.2*(K>25)*K^{1/4}+0.1*L0+0.2*(A0==1)+0.9*(A0==2)+2.15*L.prev,
-                    form.A=function(L0, L.prev, A.prev, A0) cbind(-1+(1-A0)*0.6+(1-A.prev)*0.4+L.prev*0.5-0.15*(K>15)*L.prev),
-                    form.Y=function(L0, L.prev, A.prev, A0, no.jumps.A, dN.A.prev) -1.1-
-                        0.33*K/3*(K>2 & K<=4)-0.25*K^{2/3}-0.25*(K>4 & K<=9)-
-                        (K>25 & K<45)*0.3*K^{1/5}-
-                        (K>75)*0.31+(K>85)*0.2-
-                        (K>25 & K<75)*0.5*K^{1/5}+0.6*(K>25)*K^{1/4}-0.25*A.prev+
-                        0.4*L.prev-0.25*A0+0.35*L.prev*A0+(K>75)*0.1*A0+(K>85)*0.01*A0,
-                    form.L=function(L0, L.prev, A.prev, A0) 0.5-0.15*L0+0.25*(A.prev==1)+0.2*L.prev,
-                    form.dN.L=function(L0, dN.L.prev, L.prev, A.prev) -0.2-0.05*K-0.025*(K>7)-0.25*dN.L.prev-0.15*L0-0.1*(A.prev==1)+0.3*L.prev,
-                    form.dN.A=function(L0, dN.A.prev, L.prev, A.prev, no.jumps.A, L.star) -0.75-0.05*K-0.42*dN.A.prev+0.15*L0+0.3*(A.prev==2)+0.4*(A.prev==1)-0.25*L.prev) {
-
+                    misspecify.init=FALSE) {
+    dt <- copy(data)
     K <- max(numextract(names(dt)[grep("Y", substr(names(dt), 1, 1))]))-1
     
     #-------------------------------------------------------------------------------------------#
@@ -123,11 +114,7 @@ est.fun <- function(dt, censoring=TRUE, intervention.A=c(1, 1), stochastic.A=FAL
 
         #summary(glm(A~L0+A0 + L.prev+A.prev, data=dt.long[keep==1], family=binomial()))
         
-        if (stochastic.A) { #--- stochastic intervention that is estimated from the data
-            fit.A.stochastic <- fit.density(dt.long, "A", c("L0", "L.prev", "A.prev"), subset="keep")
-            setnames(fit.A.stochastic, paste0("fit.", "A"), paste0("int.", "A"))
-            fit.A <- merge(fit.A, fit.A.stochastic, by=names(fit.A.stochastic)[1:(length(fit.A.stochastic)-1)])
-        } else if (length(intervention.A)>0) {            
+        if (length(intervention.A)>0) {            
             fit.A[, int.A:=plogis(intervention.A(L0, A0, L.prev, A.prev, A))]
         }
 
@@ -219,31 +206,20 @@ est.fun <- function(dt, censoring=TRUE, intervention.A=c(1, 1), stochastic.A=FAL
                 dt[get(paste0("dN.A", k))==0, keep:=0]
                 out <- fit.density(dt, paste0("A", k),
                                    unique(c("L0", "A0", paste0("L", k-1), paste0("A", k-1))), subset="keep")
-                if (stochastic.A) { #--- stochastic intervention that is estimated from the data;
-                    out.stochastic <- fit.density(dt, paste0("A", k),
-                                                  unique(c("L0", paste0("L", k-1))), subset="keep")
-                    setnames(out.stochastic, paste0("fit.", "A", k), paste0("int.", "A", k))
-                    out <- merge(out, out.stochastic, by=names(out.stochastic)[1:(length(out.stochastic)-1)])
-                } else {            
-                    if (k>1) {
-                        out[, (paste0("int.A", k)):=plogis(intervention.A(L0, A0,
-                                                                          get(paste0("L", k-1)),
-                                                                          get(paste0("A", k-1)),
-                                                                          get(paste0("A", k))))]
-                    } else {
-                        out[, (paste0("int.A", k)):=plogis(intervention.A(L0, A0,
-                                                                          0,
-                                                                          get(paste0("A", k-1)),
-                                                                          get(paste0("A", k))))]
-                    }
+                if (k>1) {
+                    out[, (paste0("int.A", k)):=plogis(intervention.A(L0, A0,
+                                                                      get(paste0("L", k-1)),
+                                                                      get(paste0("A", k-1)),
+                                                                      get(paste0("A", k))))]
+                } else {
+                    out[, (paste0("int.A", k)):=plogis(intervention.A(L0, A0,
+                                                                      0,
+                                                                      get(paste0("A", k-1)),
+                                                                      get(paste0("A", k))))]
                 }
             } else {
                 out <- fit.density(dt, "A0", "L0", subset="keep")
-                if (stochastic.A & length(intervention.A0)==0) { #--- stochastic intervention at baseline
-                    out.stochastic <- fit.density(dt, "A0", "L0", subset="keep")
-                    setnames(out.stochastic, paste0("fit.", "A", "0"), paste0("int.", "A", "0"))
-                    out <- merge(out, out.stochastic, by=names(out.stochastic)[1:(length(out.stochastic)-1)])
-                } else if (length(intervention.A0)>0) {
+                if (length(intervention.A0)>0) {
                     out[, (paste0("int.A", k)):=plogis(intervention.A0(L0, A0))]
                 } else { 
                     out[, (paste0("int.A", k)):=plogis(intervention.A(L0, get(paste0("A", k)),
@@ -254,7 +230,6 @@ est.fun <- function(dt, censoring=TRUE, intervention.A=c(1, 1), stochastic.A=FAL
             }
             return(out)
         })
-
 
         fit.C <- lapply(1:K, function(k) {
             if (k>1) {
@@ -495,11 +470,7 @@ est.fun <- function(dt, censoring=TRUE, intervention.A=c(1, 1), stochastic.A=FAL
                                     L.prev=0,
                                     A=get(paste0("A", numextract(k.var)-1)))]
                 }
-                if (!compute.true.eic) {
-                    dt.Z.tmp[, (paste0("pred.", k.var)):=predict(fit.Y, newdata=dt.Z.tmp, type="response")]
-                } else {
-                    dt.Z.tmp[, (paste0("pred.", k.var)):=plogis(form.Y(L0, L.prev, A.prev, A0, 0, dN.A.prev))]
-                }
+                dt.Z.tmp[, (paste0("pred.", k.var)):=predict(fit.Y, newdata=dt.Z.tmp, type="response")]
             } else if (substr(k.var, 1, 1)=="A") {
                 if (numextract(k.var)>1) {
                     dt.Z.tmp[, `:=`(k=numextract(k.var),
@@ -515,29 +486,19 @@ est.fun <- function(dt, censoring=TRUE, intervention.A=c(1, 1), stochastic.A=FAL
                                     dN.A.prev=0)]
                 }
                 if (numextract(k.var)>0) {
-                    if (!compute.true.eic) {
-                        if (length(intervention.A)>0) {
-                            dt.Z.tmp <- merge(dt.Z.tmp, fit.A[, -grep("fit\\.", names(fit.A), value=TRUE), with=FALSE],
-                                              by=names(fit.A)[!substr(names(fit.A), 1, 3)%in%c("fit","int")])
-                            setnames(dt.Z.tmp, paste0("int.A"), paste0("pred.", k.var))
-                        } else {
-                            dt.Z.tmp <- merge(dt.Z.tmp, fit.A[, -grep("int\\.", names(fit.A), value=TRUE), with=FALSE],
-                                              by=names(fit.A)[!substr(names(fit.A), 1, 3)%in%c("fit","int")])
-                            setnames(dt.Z.tmp, paste0("fit.A"), paste0("pred.", k.var))
-                        }
+                    if (length(intervention.A)>0) {
+                        dt.Z.tmp <- merge(dt.Z.tmp, fit.A[, -grep("fit\\.", names(fit.A), value=TRUE), with=FALSE],
+                                          by=names(fit.A)[!substr(names(fit.A), 1, 3)%in%c("fit","int")])
+                        setnames(dt.Z.tmp, paste0("int.A"), paste0("pred.", k.var))
                     } else {
-                        dt.Z.tmp[, (paste0("pred.", k.var)):=plogis(form.A(L0, L.prev, A.prev, A0))*(1-get(k.var))+
-                                       (1-plogis(form.A(L0, L.prev, A.prev, A0)))*(get(k.var))] 
+                        dt.Z.tmp <- merge(dt.Z.tmp, fit.A[, -grep("int\\.", names(fit.A), value=TRUE), with=FALSE],
+                                          by=names(fit.A)[!substr(names(fit.A), 1, 3)%in%c("fit","int")])
+                        setnames(dt.Z.tmp, paste0("fit.A"), paste0("pred.", k.var))
                     }
                 } else {
-                    if (!compute.true.eic) { 
-                        dt.Z.tmp <- merge(dt.Z.tmp, fit.A0[, -grep("fit\\.", names(fit.A0), value=TRUE), with=FALSE],
-                                          by=names(fit.A0)[!substr(names(fit.A0), 1, 3)%in%c("fit","int")])
-                        setnames(dt.Z.tmp, paste0("int.A0"), paste0("pred.", k.var))
-                    } else {
-                        dt.Z.tmp[, (paste0("pred.", k.var)):=plogis(form.A0(L0))*(1-get(k.var))+
-                                       (1-plogis(form.A0(L0)))*(get(k.var))] 
-                    }
+                    dt.Z.tmp <- merge(dt.Z.tmp, fit.A0[, -grep("fit\\.", names(fit.A0), value=TRUE), with=FALSE],
+                                      by=names(fit.A0)[!substr(names(fit.A0), 1, 3)%in%c("fit","int")])
+                    setnames(dt.Z.tmp, paste0("int.A0"), paste0("pred.", k.var))
                 }
             }  else if (substr(k.var, 1, 4)=="dN.A") {
                 if (numextract(k.var)>1) {
@@ -551,11 +512,7 @@ est.fun <- function(dt, censoring=TRUE, intervention.A=c(1, 1), stochastic.A=FAL
                                     A.prev=get(paste0("A", numextract(k.var)-1)),
                                     dN.A.prev=0)]
                 }
-                if (!compute.true.eic) {
                     dt.Z.tmp[, (paste0("pred.", k.var)):=predict(fit.dN.A, newdata=dt.Z.tmp, type="response")]
-                } else {
-                    dt.Z.tmp[, (paste0("pred.", k.var)):=plogis(form.dN.A(L0, dN.A.prev, L.prev, A.prev, 0, 0))]
-                }
                 if (length(intervention.dN.A)>0) {
                     if (!include.pseudo) {
                         dt.Z.tmp[, (paste0("prev.jump.A", numextract(k.var)-1)):=0]
@@ -605,11 +562,7 @@ est.fun <- function(dt, censoring=TRUE, intervention.A=c(1, 1), stochastic.A=FAL
                                     A.prev=get(paste0("A", numextract(k.var)-1)), 
                                     dN.L.prev=0)]
                 }
-                if (!compute.true.eic) {
                     dt.Z.tmp[, (paste0("pred.", k.var)):=predict(fit.L, newdata=dt.Z.tmp, type="response")]
-                } else {
-                    dt.Z.tmp[, (paste0("pred.", k.var)):=plogis(form.L(L0, L.prev, A.prev, A0))]
-                }
             } else if (substr(k.var, 1, 4)=="dN.L") {
                 if (numextract(k.var)>1) {
                     dt.Z.tmp[, `:=`(k=numextract(k.var), 
@@ -622,11 +575,7 @@ est.fun <- function(dt, censoring=TRUE, intervention.A=c(1, 1), stochastic.A=FAL
                                     A.prev=get(paste0("A", numextract(k.var)-1)), 
                                     dN.L.prev=0)]
                 }
-                if (!compute.true.eic) {
                     dt.Z.tmp[, (paste0("pred.", k.var)):=predict(fit.dN.L, newdata=dt.Z.tmp, type="response")]
-                } else {
-                    dt.Z.tmp[, (paste0("pred.", k.var)):=plogis(form.dN.L(L0, dN.L.prev, L.prev, A.prev))]
-                }
             }
         } else { # not smooth initial
         
@@ -1058,17 +1007,23 @@ est.fun <- function(dt, censoring=TRUE, intervention.A=c(1, 1), stochastic.A=FAL
         compute.eic(dt, targeting=targeting)
 
         fit.tmle <- try(target.fun(dt, targeting=targeting))
-   
         if (is(fit.tmle, "try-error")) {
-            fit.list[[mm]] <- "ERROR"
+            fit.list[[mm]] <- NA
         } else {
             fit.list[[mm]] <- c(psi.hat=dt[, psi.hat][1], eps.hat=coef(fit.tmle),
                                 sd.eic=dt[, sqrt(mean(eic^2)/nrow(dt))])
-            if (abs(dt[, mean(eic)])<=dt[, sqrt(mean(eic^2)/nrow(dt))]/(sqrt(nrow(dt))*log(nrow(dt)))) {
-                break
+            ## check convergence
+            if (mm==1) {
+                if (abs(dt[, mean(eic)])<=dt[, sqrt(mean(eic^2)/nrow(dt))]/(sqrt(nrow(dt))*log(nrow(dt)))) {
+                    break
+                }
+            }else{
+                if (abs(fit.list[[mm]][["psi.hat"]]-fit.list[[mm-1]][["psi.hat"]])<eps ||
+                    abs(dt[, mean(eic)])<=dt[, sqrt(mean(eic^2)/nrow(dt))]/(sqrt(nrow(dt))*log(nrow(dt)))) {
+                    break
+                }
             }
         }
-
         if (is(fit.tmle, "try-error")) {
             return(c(fit.list[[mm]], weights.max=save.weights.max, weights.zeros=save.weights.zeros, weights.truncated=weights.truncated))
         }
@@ -1081,20 +1036,11 @@ est.fun <- function(dt, censoring=TRUE, intervention.A=c(1, 1), stochastic.A=FAL
     #-------------------------------------------------------------------------------------------#
     ## return
     #-------------------------------------------------------------------------------------------#
-    print(fit.list)
+    if (verbose)print(length(fit.list))
     out <- fit.list[[length(fit.list)]]
+    out <- out[c(1,3)]
+    names(out) <- c("ctmle","se")
     return(out)
-    ## out.list <- list(c(fit.list[[1]],
-    ## weights.max=save.weights.max,
-    ## weights.zeros=save.weights.zeros,
-    ## weights.truncated=weights.truncated,
-    ## no.iteration=length(fit.list)))
-    ## if (length(fit.list)>1) {
-    ## for (mm in 2:length(fit.list)) {
-    ## out.list[[mm]] <- fit.list[[mm]]
-    ## }
-    ## }
-    ## return(out.list)
 }
 
 

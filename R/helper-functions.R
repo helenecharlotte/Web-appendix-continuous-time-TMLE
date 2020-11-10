@@ -10,14 +10,33 @@ print.watmle <- function(x,...){
 #-------------------------------------------------------------------------------------------#
 summary.watmle <- function(object,true){
     x <- data.table(do.call("rbind",object))
-    print(true)
-    print(x)
-    x[,{
-        bias.A0 <- mean(psi.hat.A0)-true[["psi0.A0"]]
-        bias.A1 <- mean(psi.hat.A1)-true[["psi0.A1"]]
-        bias.diff <- (psi.hat.A1-psi.hat.A0)-(true[["psi0.A1"]]-true[["psi0.A0"]])
-        cov.A0 <- 
-    browser()
+    out <- x[,{
+        mean.A0 <- mean(psi.hat.A0)
+        mean.A1 <- mean(psi.hat.A1)
+        bias.A0 <- mean.A0-true[["psi0.A0"]]
+        bias.A1 <- mean.A1-true[["psi0.A1"]]
+        diff <- psi.hat.A1-psi.hat.A0
+        true.diff <- true[["psi0.A1"]]-true[["psi0.A0"]]
+        bias.diff <- mean(diff)-true.diff
+        cov.A0 <- cov.fun(est=psi.hat.A0,se=sd.eic.A0,true=true[["psi0.A0"]])
+        cov.A1 <- cov.fun(est=psi.hat.A1,se=sd.eic.A1,true=true[["psi0.A1"]])
+        cov.diff <- cov.fun(est=diff,se=sqrt(sd.eic.A1^2+sd.eic.A1^2),true=true.diff)
+        se.A0 <- mean(sd.eic.A0)
+        se.A1 <- mean(sd.eic.A1)
+        se.diff <- mean(sqrt(sd.eic.A0^2+sd.eic.A1^2))
+        mse.A0 <- mse(psi.hat.A0)
+        mse.A1 <- mse(psi.hat.A1)
+        mse.diff <- mse(diff)
+        out <- data.frame(matrix(c(true.A0=true[["psi0.A0"]],true.A1=true[["psi0.A1"]],true.diff=true.diff,
+                                   mean.A0=mean.A0,mean.A1=mean.A1,mean.diff=mean.A1-mean.A0,
+                                   bias.A0=bias.A0,bias.A1=bias.A1,bias.diff=bias.diff,
+                                   se.A0=se.A0,se.A1=se.A1,se.diff=se.diff,
+                                   cov.A0=cov.A0,cov.A1=cov.A1,cov.diff=cov.diff,
+                                   mse.A0=mse.A0,mse.A1=mse.A1,mse.diff=mse.diff),ncol=3,byrow=TRUE))
+        names(out) <- c("A0","A1","psi")
+        out <- cbind(Result=c("true","mean","bias","se","coverage","MSE"),out)
+    }]
+    out
 }
 
 
@@ -73,9 +92,9 @@ plot.watmle <- function(x,...){
     })
 }
 
-cov.fun <- function(psi.hat, sd, psi0) {
-    return(mean(psi.hat - 1.96*sd <= psi0 &
-                psi.hat + 1.96*sd >= psi0))
+cov.fun <- function(est, se, true) {
+    return(mean(est + qnorm(0.025)*se <= true &
+                est + qnorm(0.975)*se >= true))
 }
 
 numextract <- function(string){ 

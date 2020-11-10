@@ -8,7 +8,7 @@ repeat.fun <- function(m,
                        seed) {
     dt <- sim.data(n,seed=seed,censoring=TRUE,K=K)
     if (run.ctmle) {
-        est.psi.A0 <- est.fun(copy(dt), censoring=TRUE,
+        est.psi.A0 <- est.fun(dt, censoring=TRUE,
                               targeting=2, 
                               smooth.initial=TRUE,
                               max.iter=max.iter,
@@ -16,7 +16,7 @@ repeat.fun <- function(m,
                               intervention.A=function(L0, A0, L.prev, A.prev, A) logit(1*(A==0)),
                               misspecify.init=misspecify.init)
 
-        est.psi.A1 <- est.fun(copy(dt), censoring=TRUE,
+        est.psi.A1 <- est.fun(dt, censoring=TRUE,
                               targeting=2, 
                               smooth.initial=TRUE,
                               max.iter=max.iter,
