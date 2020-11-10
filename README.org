@@ -1,4 +1,3 @@
-#+superman-export-target: html
 # Web-appendix-continuous-time-TMLE
 * Welcome
 
