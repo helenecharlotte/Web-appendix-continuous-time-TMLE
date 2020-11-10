@@ -9,14 +9,11 @@ est.fun <- function(dt, censoring=TRUE, intervention.A=c(1, 1), stochastic.A=FAL
                     include.pseudo2=FALSE, q0=3,
                     truncate.weights=TRUE,
                     targeting=1,
-                    maxIter=25,
+                    max.iter=25,
                     verbose=FALSE, 
                     smooth.initial=FALSE, 
-                    browse0=FALSE, browse3=FALSE, browse4=FALSE,
-                    browse5=FALSE, browse9=FALSE, 
-                    browse=FALSE, browse2=FALSE, misspecify.Q=FALSE,
+                    misspecify.init=FALSE,
                     compute.true.eic=FALSE,
-                    only.A0=FALSE, 
                     form.A0=function(L0) cbind(-0.1+0.25*L0),
                     form.C=function(L0, L.prev, A.prev, A0) -3.95+(K>40)*5-0.4*K^{2/3}-0.24*(K>2 & K<=4)-0.4*(K>4 & K<=9)-(K>9)*0.4*K^{1/5}+0.2*(K>25)*K^{1/4}+0.1*L0+0.2*(A0==1)+0.9*(A0==2)+2.15*L.prev,
                     form.A=function(L0, L.prev, A.prev, A0) cbind(-1+(1-A0)*0.6+(1-A.prev)*0.4+L.prev*0.5-0.15*(K>15)*L.prev),
@@ -30,19 +27,8 @@ est.fun <- function(dt, censoring=TRUE, intervention.A=c(1, 1), stochastic.A=FAL
                     form.dN.L=function(L0, dN.L.prev, L.prev, A.prev) -0.2-0.05*K-0.025*(K>7)-0.25*dN.L.prev-0.15*L0-0.1*(A.prev==1)+0.3*L.prev,
                     form.dN.A=function(L0, dN.A.prev, L.prev, A.prev, no.jumps.A, L.star) -0.75-0.05*K-0.42*dN.A.prev+0.15*L0+0.3*(A.prev==2)+0.4*(A.prev==1)-0.25*L.prev) {
 
-    if (only.A0) {
-            form.Y <- function(L0, L.prev, A.prev, A0, no.jumps.A, dN.A.prev) -1.1-
-                0.33*K/3*(K>2 & K<=4)-0.25*K^{2/3}-0.25*(K>4 & K<=9)-
-                (K>25 & K<45)*0.3*K^{1/5}-
-                (K>75)*0.31+(K>85)*0.2-
-                (K>25 & K<75)*0.5*K^{1/5}+0.6*(K>25)*K^{1/4}+L0*0.2-0.25*A0+
-                (K>75)*0.1*A0+(K>85)*0.01*A0
-    }
- 
     K <- max(numextract(names(dt)[grep("Y", substr(names(dt), 1, 1))]))-1
     
-    if (browse0) browser()
-
     #-------------------------------------------------------------------------------------------#
     ## define variable order for integrating out 
     #-------------------------------------------------------------------------------------------#
@@ -115,7 +101,7 @@ est.fun <- function(dt, censoring=TRUE, intervention.A=c(1, 1), stochastic.A=FAL
         dt.long[, dN.A.prev:=c(0, dN.A[-.N]), by="id"]
 
         dt.long[, keep:=c(0, C[-.N])==0 & c(0, Y[-.N])==0, by="id"]
-        if (misspecify.Q) {
+        if (misspecify.init) {
             fit.Y <- glm(Y ~ L0 + A0, data=dt.long[keep==1], family=binomial())
         } else {
             fit.Y <- glm(Y ~ L0 + A0*L.prev + A.prev*L.prev + dN.A.prev,
@@ -165,7 +151,7 @@ est.fun <- function(dt, censoring=TRUE, intervention.A=c(1, 1), stochastic.A=FAL
         fit.Y <- lapply(1:(K+1), function(k) {
             dt[, keep:=1]
             if (k>1) dt[, keep:=1*(.SD[, 1]==0 & .SD[, 2]==0), .SDcols=paste0(c("C", "Y"), k-1)]
-            if (misspecify.Q) {
+            if (misspecify.init) {
                 glm(formula(paste0("Y", k, "~L0+A0")),
                     family=binomial(), data=dt[keep==1])        
             } else {
@@ -399,7 +385,6 @@ est.fun <- function(dt, censoring=TRUE, intervention.A=c(1, 1), stochastic.A=FAL
 
     }
 
-    if (browse9) browser()
        
     #-------------------------------------------------------------------------------------------#
     ## matrices for computing clever covariates 
@@ -777,7 +762,7 @@ est.fun <- function(dt, censoring=TRUE, intervention.A=c(1, 1), stochastic.A=FAL
     ## function to evaluate efficient influence curve
     #-------------------------------------------------------------------------------------------#
 
-    compute.eic <- function(dt, eic.name="eic", browse=FALSE, targeting=1) {
+    compute.eic <- function(dt, eic.name="eic", targeting=1) {
 
         dt[, tmp.eic:=0]
         
@@ -792,8 +777,6 @@ est.fun <- function(dt, censoring=TRUE, intervention.A=c(1, 1), stochastic.A=FAL
             }
         }
 
-        if (browse) browser()
-        
         dt[, (eic.name):=Z-psi.hat+tmp.eic]
         dt[, tmp.eic:=NULL]
         
@@ -804,10 +787,8 @@ est.fun <- function(dt, censoring=TRUE, intervention.A=c(1, 1), stochastic.A=FAL
     ## function for integrating out
     #-------------------------------------------------------------------------------------------#
     
-    int.fun <- function(k.var, dt.Z.k1, dt.Z.k, iter=0, fit.tmle=NULL, browse=FALSE) {
+    int.fun <- function(k.var, dt.Z.k1, dt.Z.k, iter=0, fit.tmle=NULL) {
 
-        if (browse) browser()
-        
         if (length(fit.tmle)>0 & ((length(intervention.A)==0 & numextract(k.var)>0) |
                                   substr(k.var, 1, 1)!="A")) {
             #-- update according to tmle fit:
@@ -993,19 +974,15 @@ est.fun <- function(dt, censoring=TRUE, intervention.A=c(1, 1), stochastic.A=FAL
     ## repeat integrating out, targeting and estimation of target parameter and sd
     #-------------------------------------------------------------------------------------------#
 
-    if (browse3) browser()
-    
     dt.Z.k.list2 <- list()
     fit.list <- list()
+    ## HELY:???
     dt1 <- copy(dt)
-
-    for (mm in 1:maxIter) {
+    for (mm in 1:max.iter) {
 
         dt <- copy(dt1)
 
         if (verbose) print(paste0(mm, "->", mm+1))
-
-        #if (mm>1) browser()
         
         if (mm==1) {
             dt.Z.k1 <- copy(dt.Z.list[[1]])
@@ -1072,14 +1049,13 @@ est.fun <- function(dt, censoring=TRUE, intervention.A=c(1, 1), stochastic.A=FAL
             }
         }
 
-        if (browse5) browser()
-
         dt <- merge(dt, unique(dt.Z.k1[, c("L0", "Z"), with=FALSE]), by="L0")
 
         dt[, psi.hat:=  
                  dt.Z.k1[, mean(Z)]]
 
-        compute.eic(dt, browse=FALSE, targeting=targeting)
+        ## add one column by reference
+        compute.eic(dt, targeting=targeting)
 
         fit.tmle <- try(target.fun(dt, targeting=targeting))
    
@@ -1101,20 +1077,24 @@ est.fun <- function(dt, censoring=TRUE, intervention.A=c(1, 1), stochastic.A=FAL
             return(c(fit.list[[mm]], weights.max=save.weights.max, weights.zeros=save.weights.zeros, weights.truncated=weights.truncated))
         }
     }  
-
+    
     #-------------------------------------------------------------------------------------------#
     ## return
     #-------------------------------------------------------------------------------------------#
-
-    out.list <- list(c(fit.list[[1]], weights.max=save.weights.max, weights.zeros=save.weights.zeros,
-                       weights.truncated=weights.truncated, no.iteration=length(fit.list)))
-    if (length(fit.list)>1) {
-        for (mm in 2:length(fit.list)) {
-            out.list[[mm]] <- fit.list[[mm]]
-        }
-    }
-
-    return(out.list)
+    print(fit.list)
+    out <- fit.list[[length(fit.list)]]
+    return(out)
+    ## out.list <- list(c(fit.list[[1]],
+    ## weights.max=save.weights.max,
+    ## weights.zeros=save.weights.zeros,
+    ## weights.truncated=weights.truncated,
+    ## no.iteration=length(fit.list)))
+    ## if (length(fit.list)>1) {
+    ## for (mm in 2:length(fit.list)) {
+    ## out.list[[mm]] <- fit.list[[mm]]
+    ## }
+    ## }
+    ## return(out.list)
 }
 
 

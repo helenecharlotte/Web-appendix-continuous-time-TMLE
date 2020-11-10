@@ -1,53 +1,31 @@
-repeat.fun <- function(m, K, only.A0=FALSE,
-                       run.ltmle=FALSE, run.ctmle=FALSE, run.ctmle2=TRUE,
-                       misspecify.Q=FALSE,
-                       n=1000,seed) {
-
-    dt <- sim.data(1000, seed=seed, censoring=TRUE,
-                   only.A0=only.A0,
-                   browse=FALSE,
-                   K=K)
-
+repeat.fun <- function(m,
+                       K,
+                       run.ltmle=FALSE,
+                       run.ctmle=FALSE,
+                       misspecify.init=FALSE,
+                       max.iter=25,
+                       n=1000,
+                       seed) {
+    dt <- sim.data(n,seed=seed,censoring=TRUE,K=K)
     if (run.ctmle) {
-        
-        est.list.test.multi.M0 <- est.fun(copy(dt), censoring=TRUE,
-                                                  targeting=1, 
-                                                  smooth.initial=TRUE,
-                                                  browse3=FALSE,
-                                                  intervention.A0=function(L0, A0) logit(1*(A0==0)),
-                                                  intervention.A=function(L0, A0, L.prev, A.prev, A) logit(1*(A==0)),
-                                                  browse0=FALSE, misspecify.Q=misspecify.Q)
+        est.psi.A0 <- est.fun(copy(dt), censoring=TRUE,
+                              targeting=2, 
+                              smooth.initial=TRUE,
+                              max.iter=max.iter,
+                              intervention.A0=function(L0, A0) logit(1*(A0==0)),
+                              intervention.A=function(L0, A0, L.prev, A.prev, A) logit(1*(A==0)),
+                              misspecify.init=misspecify.init)
 
-        est.list.test.multi.M1 <- est.fun(copy(dt), censoring=TRUE,
-                                                  targeting=1, 
-                                                  smooth.initial=TRUE,
-                                                  browse5=FALSE,
-                                                  intervention.A0=function(L0, A0) logit(1*(A0==1)),
-                                                  intervention.A=function(L0, A0, L.prev, A.prev, A) logit(1*(A==1)),
-                                                  browse0=FALSE, misspecify.Q=misspecify.Q)
-
-        return(list(est.list.test.multi.M1, est.list.test.multi.M0))
-
-    }
-
-    if (run.ctmle2) {
-        est.list.test.multi.target2.M0 <- est.fun(copy(dt), censoring=TRUE,
-                                                   targeting=2, 
-                                                   smooth.initial=TRUE,
-                                                   browse5=FALSE,
-                                                   intervention.A0=function(L0, A0) logit(1*(A0==0)),
-                                                   intervention.A=function(L0, A0, L.prev, A.prev, A) logit(1*(A==0)),
-                                                   browse0=FALSE, misspecify.Q=misspecify.Q)
-
-        est.list.test.multi.target2.M1 <- est.fun(copy(dt), censoring=TRUE,
-                                                   targeting=2, 
-                                                   smooth.initial=TRUE,
-                                                   browse9=FALSE,
-                                                   intervention.A0=function(L0, A0) logit(1*(A0==1)),
-                                                   intervention.A=function(L0, A0, L.prev, A.prev, A) logit(1*(A==1)),
-                                                   browse0=FALSE, misspecify.Q=misspecify.Q)
-
-        return(list(est.list.test.multi.target2.M1, est.list.test.multi.target2.M0))
+        est.psi.A1 <- est.fun(copy(dt), censoring=TRUE,
+                              targeting=2, 
+                              smooth.initial=TRUE,
+                              max.iter=max.iter,
+                              intervention.A0=function(L0, A0) logit(1*(A0==1)),
+                              intervention.A=function(L0, A0, L.prev, A.prev, A) logit(1*(A==1)),
+                              misspecify.init=misspecify.init)
+        names(est.psi.A0) <- paste0(names(est.psi.A1),".A0")
+        names(est.psi.A1) <- paste0(names(est.psi.A1),".A1")
+        return(c(est.psi.A1, est.psi.A0))
     }
     
     if (run.ltmle) {
@@ -72,7 +50,7 @@ repeat.fun <- function(m, K, only.A0=FALSE,
             abar0 <- (df.wide[, Nnodes] == 1) * 0 + (df.wide[, Nnodes] == 0) * df.wide[, Anodes]
             abar1 <- (df.wide[, Nnodes] == 1) * 1 + (df.wide[, Nnodes] == 0) * df.wide[, Anodes]
             #abar <- (df.wide[, Nnodes] == 1) * 0 + (df.wide[, Nnodes] == 0) * 0
-    
+            
             #--- specify intervention step 2: when dA(dt)=1 : 
             det.g.fun <- function(data, current.node, nodes) {
                 if (substr(names(data)[current.node], 1, 1)=="C") {
@@ -80,9 +58,7 @@ repeat.fun <- function(m, K, only.A0=FALSE,
                         C.node.index <- current.node
                         observed.C <- data[, C.node.index]
                         is.deterministic <- observed.C=="censored" | is.na(observed.C)
-                        #browser()
                         prob1 <- observed.C[is.deterministic]#observed.C[is.deterministic]
-                        # if ( names(data)[current.node] == "C2") browser()
                         return(list(is.deterministic = is.deterministic, prob1 = prob1))
                     }
                     #return(NULL)
@@ -94,7 +70,6 @@ repeat.fun <- function(m, K, only.A0=FALSE,
                     observed.A <- data[, A.node.index]
                     is.deterministic <- N == 0 | is.na(N)
                     prob1 <- observed.A[is.deterministic]
-                    #if ( names(data)[current.node] == "A2") browser()
                     return(list(is.deterministic = is.deterministic, prob1 = prob1))
                 }
             }
@@ -147,7 +122,7 @@ repeat.fun <- function(m, K, only.A0=FALSE,
             ltmle.list.1 <- "ERROR"
         } else {
             ltmle.list.1 <- list(est=r1$estimates["tmle"],
-                                        sd=summary(r1)$treatment$std.dev)
+                                 sd=summary(r1)$treatment$std.dev)
         }
 
         return(list( ltmle.list.1,  ltmle.list.0))

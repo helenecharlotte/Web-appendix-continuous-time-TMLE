@@ -4,8 +4,7 @@ sim.data <- function(n, seed,
                      intervention.dN.A=NULL,
                      time.since=3,
                      q0=3,
-                     misspecify.Q=FALSE,
-                     only.A0=FALSE,
+                     misspecify.init=FALSE,
                      form.dN.L=NULL,
                      form.dN.A=NULL,
                      form.A=NULL, 
@@ -17,9 +16,7 @@ sim.data <- function(n, seed,
                      rescue=FALSE, rescue.itt=FALSE, 
                      obs.mean=FALSE,
                      K=1,
-                     verbose=FALSE, 
-                     browse=FALSE) {
-
+                     verbose=FALSE) {
 
     if (length(form.dN.L)==0) form.dN.L <- function(L0, dN.L.prev, L.prev, A.prev) -0.2-0.05*K-0.025*(K>7)-0.25*dN.L.prev-0.15*L0-0.1*(A.prev==1)+0.3*L.prev
     if (length(form.dN.A)==0) form.dN.A <- function(L0, dN.A.prev, L.prev, A.prev, no.jumps.A, L.star) -0.75-0.05*K-0.42*dN.A.prev+0.15*L0+0.3*(A.prev==2)+0.4*(A.prev==1)-0.25*L.prev
@@ -28,21 +25,12 @@ sim.data <- function(n, seed,
     if (length(form.A0)==0) form.A0 <- function(L0) cbind(-0.1+0.25*L0)
     if (length(form.A)==0) form.A <- function(L0, L.prev, A.prev, A0) cbind(-1+(1-A0)*0.6+(1-A.prev)*0.4+L.prev*0.6-0.15*(K>15)*L.prev)
     if (length(form.Y)==0) {
-        if (!only.A0) {
-            form.Y <- function(L0, L.prev, A.prev, A0, no.jumps.A, dN.A.prev) -1.1-
-                0.33*K/3*(K>2 & K<=4)-0.25*K^{2/3}-0.25*(K>4 & K<=9)-
-                (K>25 & K<45)*0.3*K^{1/5}-
-                (K>75)*0.31+(K>85)*0.2-
-                (K>25 & K<75)*0.5*K^{1/5}+0.6*(K>25)*K^{1/4}-0.25*A.prev+
-                0.4*L.prev-0.25*A0+0.35*L.prev*A0+(K>75)*0.1*A0+(K>85)*0.01*A0
-        } else {
-            form.Y <- function(L0, L.prev, A.prev, A0, no.jumps.A, dN.A.prev) -1.1-
-                0.33*K/3*(K>2 & K<=4)-0.25*K^{2/3}-0.25*(K>4 & K<=9)-
-                (K>25 & K<45)*0.3*K^{1/5}-
-                (K>75)*0.31+(K>85)*0.2-
-                (K>25 & K<75)*0.5*K^{1/5}+0.6*(K>25)*K^{1/4}+L0*0.2-0.25*A0+
-                (K>75)*0.1*A0+(K>85)*0.01*A0
-        }
+        form.Y <- function(L0, L.prev, A.prev, A0, no.jumps.A, dN.A.prev) -1.1-
+            0.33*K/3*(K>2 & K<=4)-0.25*K^{2/3}-0.25*(K>4 & K<=9)-
+            (K>25 & K<45)*0.3*K^{1/5}-
+            (K>75)*0.31+(K>85)*0.2-
+            (K>25 & K<75)*0.5*K^{1/5}+0.6*(K>25)*K^{1/4}-0.25*A.prev+
+            0.4*L.prev-0.25*A0+0.35*L.prev*A0+(K>75)*0.1*A0+(K>85)*0.01*A0
     }
 
     if (rescue) {
@@ -189,12 +177,5 @@ sim.data <- function(n, seed,
     }
 
     dt[, (paste0("Y", K+1)):=Y.prev + rexpit(form.Y(L0, L.prev, A.prev, A0, no.jumps.A, dN.A.prev))*(1-C.prev)*(1-Y.prev)]
-
-    if (browse) browser()
-    
-    if (length(intervention.A)>0 | length(intervention.A0)>0 | length(intervention.dN.A)>0 | obs.mean) {
-        return(mean(dt[, paste0("Y", K+1), with=FALSE][[1]]))
-    } else {
-        return(dt[1:nrow(dt)])
-    }
+    dt[]
 }

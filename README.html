@@ -3,7 +3,7 @@
 "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
 <html xmlns="http://www.w3.org/1999/xhtml" lang="en" xml:lang="en">
 <head>
-<!-- 2020-10-23 Fri 10:07 -->
+<!-- 2020-11-09 Mon 09:32 -->
 <meta http-equiv="Content-Type" content="text/html;charset=utf-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1" />
 <title>&lrm;</title>
@@ -250,14 +250,16 @@ for the JavaScript code in this tag.
 <h2>Table of Contents</h2>
 <div id="text-table-of-contents">
 <ul>
-<li><a href="#org25f69a2">1. Welcome</a></li>
-<li><a href="#orgae54abf">2. Dependencies</a></li>
-<li><a href="#orgf58e8d2">3. Simulation scenario</a></li>
+<li><a href="#orgfc62ee3">1. Welcome</a></li>
+<li><a href="#org929f43d">2. Dependencies</a></li>
+<li><a href="#org99c31a2">3. Code</a></li>
+<li><a href="#orgd1717d0">4. Simulation scenario</a></li>
+<li><a href="#orgba3aab5">5. Tables</a></li>
 </ul>
 </div>
 </div>
-<div id="outline-container-org25f69a2" class="outline-2">
-<h2 id="org25f69a2"><span class="section-number-2">1</span> Welcome</h2>
+<div id="outline-container-orgfc62ee3" class="outline-2">
+<h2 id="orgfc62ee3"><span class="section-number-2">1</span> Welcome</h2>
 <div class="outline-text-2" id="text-1">
 <p>
 This is the web-appendix of our manuscript entitled 
@@ -281,8 +283,8 @@ currently working hard on achieving exactly this. Stay tuned!
 </div>
 </div>
 
-<div id="outline-container-orgae54abf" class="outline-2">
-<h2 id="orgae54abf"><span class="section-number-2">2</span> Dependencies</h2>
+<div id="outline-container-org929f43d" class="outline-2">
+<h2 id="org929f43d"><span class="section-number-2">2</span> Dependencies</h2>
 <div class="outline-text-2" id="text-2">
 <p>
 The following R-packages are needed:
@@ -295,8 +297,8 @@ The following R-packages are needed:
 </div>
 </div>
 
-<div id="outline-container-orgf58e8d2" class="outline-2">
-<h2 id="orgf58e8d2"><span class="section-number-2">3</span> Simulation scenario</h2>
+<div id="outline-container-org99c31a2" class="outline-2">
+<h2 id="org99c31a2"><span class="section-number-2">3</span> Code</h2>
 <div class="outline-text-2" id="text-3">
 <p>
 The simulation code of this web appendix is structured as follows:
@@ -306,14 +308,54 @@ The simulation code of this web appendix is structured as follows:
 <li>show.R</li>
 <li>run.R</li>
 <li>compute-true.R</li>
-<li>coverage-fun.R</li>
+<li>helper-functions.R</li>
 <li>repeat-fun.R</li>
 </ul>
 </div>
 </div>
+
+<div id="outline-container-orgd1717d0" class="outline-2">
+<h2 id="orgd1717d0"><span class="section-number-2">4</span> Simulation scenario</h2>
+<div class="outline-text-2" id="text-4">
+<div class="org-src-container">
+<pre class="src src-R"><span style="font-weight: bold;">form.dN.L</span> <span style="font-weight: bold; text-decoration: underline;">&lt;-</span> <span style="font-weight: bold;">function</span>(L0, dN.L.prev, L.prev, A.prev){
+  -0.2-0.05*K-0.025*(K&gt;7)-0.25*dN.L.prev-0.15*L0-0.1*(A.prev==1)+0.3*L.prev
+}
+<span style="font-weight: bold;">form.dN.A</span> <span style="font-weight: bold; text-decoration: underline;">&lt;-</span> <span style="font-weight: bold;">function</span>(L0, dN.A.prev, L.prev, A.prev, no.jumps.A, L.star){
+  -0.75-0.05*K-0.42*dN.A.prev+0.15*L0+0.3*(A.prev==2)+0.4*(A.prev==1)-0.25*L.prev
+}
+<span style="font-weight: bold;">form.C</span> <span style="font-weight: bold; text-decoration: underline;">&lt;-</span> <span style="font-weight: bold;">function</span>(L0, L.prev, A.prev, A0){
+  -3.95+(K&gt;40)*5-0.4*K^{2/3}-0.24*(K&gt;2 &amp; K&lt;=4)-0.4*(K&gt;4 &amp; K&lt;=9)
+  -(K&gt;9)*0.4*K^{1/5}+0.2*(K&gt;25)*K^{1/4}
+  +0.1*L0+0.2*(A0==1)+0.9*(A0==2)+2.15*L.prev
+}
+<span style="font-weight: bold;">form.L</span> <span style="font-weight: bold; text-decoration: underline;">&lt;-</span> <span style="font-weight: bold;">function</span>(L0, L.prev, A.prev, A0){
+  0.5-0.4*A0+0.15*L0-0.25*(A.prev==1)+0.4*L.prev
+}
+<span style="font-weight: bold;">form.A0</span> <span style="font-weight: bold; text-decoration: underline;">&lt;-</span> <span style="font-weight: bold;">function</span>(L0){
+  cbind(-0.1+0.25*L0)
+}
+<span style="font-weight: bold;">form.A</span> <span style="font-weight: bold; text-decoration: underline;">&lt;-</span> <span style="font-weight: bold;">function</span>(L0, L.prev, A.prev, A0){
+  cbind(-1+(1-A0)*0.6+(1-A.prev)*0.4+L.prev*0.6-0.15*(K&gt;15)*L.prev)
+}
+<span style="font-weight: bold;">form.Y</span> <span style="font-weight: bold; text-decoration: underline;">&lt;-</span> <span style="font-weight: bold;">function</span>(L0, L.prev, A.prev, A0, no.jumps.A, dN.A.prev) {
+  -1.1-0.33*K/3*(K&gt;2 &amp; K&lt;=4)-0.25*K^{2/3}-0.25*(K&gt;4 &amp; K&lt;=9)-
+    (K&gt;25 &amp; K&lt;45)*0.3*K^{1/5}-
+      (K&gt;75)*0.31+(K&gt;85)*0.2-
+      (K&gt;25 &amp; K&lt;75)*0.5*K^{1/5}+0.6*(K&gt;25)*K^{1/4}-0.25*A.prev+
+      0.4*L.prev-0.25*A0+0.35*L.prev*A0+(K&gt;75)*0.1*A0+(K&gt;85)*0.01*A0
+}
+</pre>
+</div>
+</div>
+</div>
+
+<div id="outline-container-orgba3aab5" class="outline-2">
+<h2 id="orgba3aab5"><span class="section-number-2">5</span> Tables</h2>
+</div>
 </div>
 <div id="postamble" class="status">
-Last update: 23 Oct 2020 by Thomas Alexander Gerds.
+Last update: 09 Nov 2020 by Thomas Alexander Gerds.
 </div>
 </body>
 </html>

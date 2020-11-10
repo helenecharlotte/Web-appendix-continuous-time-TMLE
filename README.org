@@ -12,32 +12,37 @@ proof-of-concept so that anonymous users can reproduce the results.
 
 Note that we here do not (yet) provide user-friendly code which
 implements our method in a computational efficient way ... but we are
-currently working hard on achieving exactly this. Stay tuned!
+currently working hard on achieving exactly this. Stay tuned! 
 
-* Dependencies
+The current implementation requires a large memory for simulations of
+many time points. 
 
-The following R-packages are needed:
+Below we describe the simulation scenario in terms of the actual
+R-code. 
 
-#+BEGIN_SRC R  :results output raw  :exports code  :session *R* :cache yes  
-data.table, zoo, stringr, ltmle, parallel, foreach, doParallel
+* Table 1
+
+#+BEGIN_SRC R  :results output raw drawer  :exports both  :session *R* :cache yes  
+
 #+END_SRC
 
-* Code
-
-The simulation code of this web appendix is structured as follows:
-
--  show.R          
--  run.R           
--  compute-true.R  
--  helper-functions.R  
--  repeat-fun.R    
 
 * Simulation scenario
 
 #+BEGIN_SRC R  :results output raw drawer  :exports code  :session *R* :cache yes  
+# Step 1: baseline covariate 
+L0 <- sample(1:6, n, replace=1000)/6
+# Step 2: baseline treatment
+form.A0 <- function(L0){
+  cbind(-0.1+0.25*L0)
+}
+# Step 3: covariate monitoring process: time for current measurement 
+#         depends on previous measurements (X.prev)
 form.dN.L <- function(L0, dN.L.prev, L.prev, A.prev){
   -0.2-0.05*K-0.025*(K>7)-0.25*dN.L.prev-0.15*L0-0.1*(A.prev==1)+0.3*L.prev
 }
+# Step 4: treatment monitoring process: time for current measurement 
+#         depends on time of last measurement (X.prev)
 form.dN.A <- function(L0, dN.A.prev, L.prev, A.prev, no.jumps.A, L.star){
   -0.75-0.05*K-0.42*dN.A.prev+0.15*L0+0.3*(A.prev==2)+0.4*(A.prev==1)-0.25*L.prev
 }
@@ -48,9 +53,6 @@ form.C <- function(L0, L.prev, A.prev, A0){
 }
 form.L <- function(L0, L.prev, A.prev, A0){
   0.5-0.4*A0+0.15*L0-0.25*(A.prev==1)+0.4*L.prev
-}
-form.A0 <- function(L0){
-  cbind(-0.1+0.25*L0)
 }
 form.A <- function(L0, L.prev, A.prev, A0){
   cbind(-1+(1-A0)*0.6+(1-A.prev)*0.4+L.prev*0.6-0.15*(K>15)*L.prev)
@@ -64,3 +66,70 @@ form.Y <- function(L0, L.prev, A.prev, A0, no.jumps.A, dN.A.prev) {
 }
 #+END_SRC
 
+*  Dependencies 
+
+** R-version
+
+The code has been tested with the following R version
+
+#+BEGIN_SRC R  :results output :exports results  :session *R* :cache yes  
+version
+#+END_SRC
+
+#+RESULTS[<2020-11-09 18:12:47> 143b9cabc93679f20607ffef9eeb3eadefba88c3]:
+#+begin_example
+               _                           
+platform       x86_64-pc-linux-gnu         
+arch           x86_64                      
+os             linux-gnu                   
+system         x86_64, linux-gnu           
+status                                     
+major          4                           
+minor          0.2                         
+year           2020                        
+month          06                          
+day            22                          
+svn rev        78730                       
+language       R                           
+version.string R version 4.0.2 (2020-06-22)
+nickname       Taking Off Again
+#+end_example
+
+and the following package versions:
+
+#+BEGIN_SRC R  :results output raw drawer  :exports results  :session *R* :cache yes  
+pp <- c("data.table", "zoo", "stringr", "ltmle", "parallel", "foreach", "doParallel")
+Publish::org(data.table(Package=pp,Version=sapply(pp,function(x) as.character(packageVersion(x)))))
+#+END_SRC
+
+#+RESULTS[<2020-11-09 18:13:13> ec9009aff7db8031012c07b48c3be553f0446e14]:
+:results:
+| Package    | Version |
+|------------+---------|
+| data.table |  1.13.0 |
+| zoo        |   1.8.8 |
+| stringr    |   1.4.0 |
+| ltmle      |   1.2.0 |
+| parallel   |   4.0.2 |
+| foreach    |   1.5.0 |
+| doParallel |  1.0.15 |
+:end:
+
+** Structure
+
+The simulation code of this web appendix is structured as follows:
+
+-  R/runTMLE.R           
+-  compute-true.R  
+-  helper-functions.R  
+-  repeat-fun.R    
+
+
+
+
+#+BEGIN_SRC R  :results output raw drawer  :exports results  :session *R* :cache yes  
+e1 <- readRDS("~/research/SoftWare/Web-appendix-continuous-time-TMLE/examples/e1.rds")
+e2 <- readRDS("~/research/SoftWare/Web-appendix-continuous-time-TMLE/examples/e2.rds")
+e1a <- readRDS("~/research/SoftWare/Web-appendix-continuous-time-TMLE/examples/e1a.rds")
+e2a <- readRDS("~/research/SoftWare/Web-appendix-continuous-time-TMLE/examples/e2a.rds")
+#+END_SRC

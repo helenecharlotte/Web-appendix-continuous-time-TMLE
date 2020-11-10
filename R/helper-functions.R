@@ -1,29 +1,27 @@
 print.watmle <- function(x,...){
-    # true values
-    psi0.A0 <- mean(sapply(x$true,function(x)x$psi0.test.multi.M0))
-    psi0.A1 <- mean(sapply(x$true,function(x)x$psi0.test.multi.M1))
     # estimated values
-    mat <- do.call("rbind",lapply(x$est,function(e){
-        if (e[1]!="ERROR"){
-            n1 <- length(e[[1]])
-            n2 <- length(e[[2]])
-            data.table(psiA0=e[[2]][[n2]][1],
-                       psiA1=e[[1]][[n1]][1],
-                       sdA0=e[[2]][[1]][3],
-                       sdA1=e[[1]][[1]][3])
-        }
-    }))
-    mat[,true.psiA0:=psi0.A0]
-    mat[,true.psiA1:=psi0.A1]
-    print(mat[])
-    mat[]
+    x <- data.table(do.call("rbind",x))
+    print(x[])
+    x[]
 }
 
 #-------------------------------------------------------------------------------------------#
 ## extract results of interest
 #-------------------------------------------------------------------------------------------#
+summary.watmle <- function(object,true){
+    x <- data.table(do.call("rbind",object))
+    print(true)
+    print(x)
+    x[,{
+        bias.A0 <- mean(psi.hat.A0)-true[["psi0.A0"]]
+        bias.A1 <- mean(psi.hat.A1)-true[["psi0.A1"]]
+        bias.diff <- (psi.hat.A1-psi.hat.A0)-(true[["psi0.A1"]]-true[["psi0.A0"]])
+        cov.A0 <- 
+    browser()
+}
 
-summary.watmle <- function(object,...){
+
+summary.watmle.old <- function(object,...){
     capture.output(X <- print(object))
     with(X,{
         cat("----------------------------","\n")
