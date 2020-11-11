@@ -3,9 +3,9 @@
 ## Author: Thomas Alexander Gerds
 ## Created: Nov  6 2020 (11:32) 
 ## Version: 
-## Last-Updated: Nov 10 2020 (17:36) 
+## Last-Updated: Nov 11 2020 (10:48) 
 ##           By: Thomas Alexander Gerds
-##     Update #: 36
+##     Update #: 38
 #----------------------------------------------------------------------
 ## 
 ### Commentary: 
@@ -35,7 +35,7 @@ runTMLE <- function(no_cores,
         # generate data
         dt <- sim.data(n,seed=seed+m,censoring=TRUE,K=K)
         # estimate 
-        est.psi.A0 <- est.fun(dt, censoring=TRUE,
+        est.psi.A0 <- conTMLE(dt, 
                               targeting=2, 
                               smooth.initial=TRUE,
                               max.iter=max.iter,
@@ -43,7 +43,7 @@ runTMLE <- function(no_cores,
                               intervention.A0=function(L0, A0) logit(1*(A0==0)),
                               intervention.A=function(L0, A0, L.prev, A.prev, A) logit(1*(A==0)),
                               misspecify.init=misspecify.init)
-        est.psi.A1 <- est.fun(dt, censoring=TRUE,
+        est.psi.A1 <- conTMLE(dt, 
                               targeting=2, 
                               smooth.initial=TRUE,
                               max.iter=max.iter,

@@ -3,9 +3,9 @@
 ## Author: Thomas Alexander Gerds
 ## Created: Nov  9 2020 (18:23) 
 ## Version: 
-## Last-Updated: Nov 10 2020 (17:44) 
+## Last-Updated: Nov 11 2020 (10:47) 
 ##           By: Thomas Alexander Gerds
-##     Update #: 3
+##     Update #: 4
 #----------------------------------------------------------------------
 ## 
 ### Commentary: 
@@ -30,8 +30,7 @@ library(doParallel)
 #-------------------------------------------------------------------------------------------#
 source("./R/sim-data.R")
 source("./R/compute-true.R")
-source("./R/est-fun.R")
-source("./R/fit-density.R")
+source("./R/conTMLE.R")
 source("./R/runTMLE.R")
 source("./R/runLTMLE.R")
 source("./R/helper-functions.R")

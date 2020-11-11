@@ -22,7 +22,7 @@ R-code.
 * Running the code
 
 The following code uses one computing core to calculate the estimates
-of cTMLE and LTMLE using a single simulated dataset. The code that
+of conTMLE and LTMLE using a single simulated dataset. The code that
 produces the empirical results of Table 1 and Table 2 of the
 manuscript are shown længer down.
 
@@ -30,13 +30,13 @@ manuscript are shown længer down.
 #+BEGIN_SRC R  :results output :exports both  :session *R* :cache yes  
 # NOTE: you need to set the working directory 
 source("./examples/load.R")
-K5.ctmle <- runTMLE(no_cores=1,K=5,misspecify.init = FALSE,M = 1,n = 1000,seed=23,progress.bar=-1)
-K5.ctmle
+K5.conTMLE <- runTMLE(no_cores=1,K=5,misspecify.init = FALSE,M = 1,n = 1000,seed=23,progress.bar=-1)
+K5.conTMLE
 #+END_SRC
 
-#+RESULTS[<2020-11-10 17:35:52> 72e3fe61d47e5f294c5476822f49ee1cc8210b04]:
-:     ctmle.A1      se.A1  ctmle.A0      se.A0
-: 1: 0.4241032 0.02574778 0.5305897 0.03168532
+#+RESULTS[<2020-11-11 10:48:36> 1f6f9e60188dc96dcada7ce6ff7cfe123a2267dd]:
+:    conTMLE.A0      se.A0   init.A0 se.init.A0 conTMLE.A1      se.A1   init.A1 se.init.A1
+: 1:  0.5305897 0.03168532 0.5069958 0.03172444  0.4241032 0.02574778 0.4129555 0.02576413
 
 #+BEGIN_SRC R  :results output :exports both  :session *R* :cache yes  
 # NOTE: you need to set the working directory 
@@ -46,6 +46,8 @@ K5.ltmle
 #+END_SRC
 
 #+RESULTS[<2020-11-10 17:36:09> f43f9656ddcdd88083218be5cebf6ea917011a36]:
+: 
+: Estimating psi with LTMLE based on observed data:
 :     ltmle.A0      sd.A0  ltmle.A1      sd.A1
 : 1: 0.5252997 0.03648988 0.4207659 0.02741637
 
@@ -54,7 +56,7 @@ K5.ltmle
 ** Table 1
 
 We provide code that produces results for =K=5= and =K=30= for LTMLE
-and our new method, cTMLE. The code in files [[examples/table1.R]] and
+and our new method, conTMLE. The code in files [[examples/table1.R]] and
 [[examples/table2.R]] generate the following results:
 
 #+BEGIN_SRC R  :results output raw drawer  :exports both  :session *R* :cache yes  
@@ -65,27 +67,29 @@ and our new method, cTMLE. The code in files [[examples/table1.R]] and
 source("./examples/load.R")
 table1.K5.true <- readRDS(file="./examples/table1-K5-true.rds")
 table1.K5.ltmle <- readRDS(file="./examples/table1-K5-ltmle.rds")
-table1.K5.ctmle <- readRDS(file="./examples/table1-K5-ctmle.rds")
+table1.K5.conTMLE <- readRDS(file="./examples/table1-K5-conTMLE.rds")
+## table1.K5.conTMLE <- table1.K5.conTMLE[sample(1:1000,size=200,replace=FALSE)]
+## class(table1.K5.conTMLE) <- "watmle"
 summary(object=table1.K5.ltmle,true=table1.K5.true)
-summary(object=table1.K5.ctmle,true=table1.K5.true)
+summary(object=table1.K5.conTMLE,true=table1.K5.true)
 #+END_SRC
 
-#+RESULTS[<2020-11-11 06:32:54> 621d2f6ce3f64930d757439ba12b3da16f669af6]:
+#+RESULTS[<2020-11-11 06:45:21> a80f575221ddbaa98b856dfc8b1b69488182a22a]:
 #+begin_example
-     LTMLE           A0           A1           psi
-1     true 0.5594940000 0.4246560000 -0.1348380000
-2     mean 0.5604047413 0.4249743984 -0.1354303429
-3     bias 0.0009107413 0.0003183984 -0.0005923429
-4       se 0.0382404918 0.0297962413  0.0484783582
-5 coverage 0.9740000000 0.9510000000  0.9450000000
-6      MSE 0.0340420306 0.0287382528  0.0429705222
-     cTMLE           A0           A1           psi
-1     true 0.5594940000 0.4246560000 -0.1348380000
-2     mean 0.5604410633 0.4250188667 -0.1354221967
-3     bias 0.0009470633 0.0003628667 -0.0005841967
-4       se 0.0301985731 0.0249113172  0.0391475100
-5 coverage 0.9410000000 0.9230000000  0.9170000000
-6      MSE 0.0315648151 0.0272826269  0.0401914348
+     LTMLE       A0       A1       psi
+1     true 0.559494 0.424656  0.134838
+2     mean 0.560405 0.424974 -0.135430
+3     bias 0.000911 0.000318  0.000592
+4       se 0.038240 0.029796  0.048478
+5 coverage 0.974000 0.951000  0.969000
+6      MSE 0.034042 0.028738  0.042971
+     conTMLE       A0       A1       psi
+1     true 0.559494 0.424656  0.134838
+2     mean 0.560441 0.425019 -0.135422
+3     bias 0.000947 0.000363  0.000584
+4       se 0.030199 0.024911  0.039148
+5 coverage 0.941000 0.923000  0.939000
+6      MSE 0.031565 0.027283  0.040191
 #+end_example
 
 *** K=30
@@ -93,27 +97,27 @@ summary(object=table1.K5.ctmle,true=table1.K5.true)
 source("./examples/load.R")
 table1.K30.true <- readRDS(file="./examples/table1-K30-true.rds")
 table1.K30.ltmle <- readRDS(file="./examples/table1-K30-ltmle.rds")
-table1.K30.ctmle <- readRDS(file="./examples/table1-K30-ctmle.rds")
+table1.K30.conTMLE <- readRDS(file="./examples/table1-K30-conTMLE.rds")
 summary(object=table1.K30.ltmle,true=table1.K30.true)
-summary(object=table1.K30.ctmle,true=table1.K30.true)
+summary(object=table1.K30.conTMLE,true=table1.K30.true)
 #+END_SRC
 
-#+RESULTS[<2020-11-11 06:33:50> b51efb857731c0084cf8075585da81ecc82af510]:
+#+RESULTS[<2020-11-11 06:42:08> 915f2184a5660e5f680b7c37671a10c87251a998]:
 #+begin_example
-     LTMLE          A0         A1          psi
-1     true 0.611914000 0.47326200 -0.138652000
-2     mean 0.615976477 0.48202223 -0.133954247
-3     bias 0.004062477 0.00876023  0.004697753
-4       se 0.081083036 0.06811621  0.105897483
-5 coverage 0.976000000 0.96700000  0.954000000
-6      MSE 0.063713770 0.06047120  0.087028633
-     cTMLE           A0            A1           psi
-1     true  0.611914000  0.4732620000 -0.1386520000
-2     mean  0.610204423  0.4724102447 -0.1377941783
-3     bias -0.001709577 -0.0008517553  0.0008578217
-4       se  0.043655625  0.0367673552  0.0570758440
-5 coverage  0.937000000  0.9470000000  0.9220000000
-6      MSE  0.044959470  0.0372479742  0.0580228584
+     LTMLE      A0      A1     psi
+1     true 0.61191 0.47326  0.1387
+2     mean 0.61598 0.48202 -0.1340
+3     bias 0.00406 0.00876 -0.0047
+4       se 0.08108 0.06812  0.1059
+5 coverage 0.97600 0.96700  0.9710
+6      MSE 0.06371 0.06047  0.0870
+     conTMLE       A0        A1       psi
+1     true  0.61191  0.473262  0.138652
+2     mean  0.61020  0.472410 -0.137794
+3     bias -0.00171 -0.000852 -0.000858
+4       se  0.04366  0.036767  0.057076
+5 coverage  0.93700  0.947000  0.954000
+6      MSE  0.04496  0.037248  0.058023
 #+end_example
 
 ** Table 2
@@ -122,18 +126,18 @@ summary(object=table1.K30.ctmle,true=table1.K30.true)
 #+BEGIN_SRC R  :results output   :exports both  :session *R* :cache yes  
 source("./examples/load.R")
 table2.K30.true <- readRDS(file="./examples/table1-K30-true.rds")
-table2.K30.misspecified <- readRDS(file="./examples/table2-K30-ctmle.rds")
+table2.K30.misspecified <- readRDS(file="./examples/table2-K30-conTMLE.rds")
 summary(object=table2.K30.misspecified,true=table2.K30.true)
 #+END_SRC
 
 #+RESULTS[<2020-11-11 06:36:42> ea82779657abf9a862e8686c263c1d4fd0ca6cfa]:
-:      cTMLE          A0            A1          psi
-: 1     true  0.61191400  0.4732620000 -0.138652000
-: 2     mean  0.60904218  0.4728682985 -0.136173881
-: 3     bias -0.00287182 -0.0003937015  0.002478119
-: 4       se  0.04369185  0.0368757742  0.057173425
-: 5 coverage  0.93900000  0.9410000000  0.924000000
-: 6      MSE  0.04519084  0.0375446679  0.058236868
+:      conTMLE       A0        A1      psi
+: 1     true  0.61191  0.473262  0.13865
+: 2     mean  0.60904  0.472868 -0.13617
+: 3     bias -0.00287 -0.000394 -0.00248
+: 4       se  0.04369  0.036876  0.05717
+: 5 coverage  0.93900  0.941000  0.95200
+: 6      MSE  0.04519  0.037545  0.05824
 
 * Changing the simulation scenario
 
