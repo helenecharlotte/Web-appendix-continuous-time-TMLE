@@ -1,31 +1,40 @@
 print.watmle <- function(x,...){
     # estimated values
-    x <- data.table(do.call("rbind",x))
-    print(x[])
-    x[]
+    X <- data.table(do.call("rbind",x))
+    print(X[])
+    X[]
 }
 
 #-------------------------------------------------------------------------------------------#
 ## extract results of interest
 #-------------------------------------------------------------------------------------------#
+
 summary.watmle <- function(object,true){
     x <- data.table(do.call("rbind",object))
+    corl <- length(grep("ltmle",names(x))>0)
+    if (corl){
+        setnames(x,gsub("ltmle","est",names(x)))
+        setnames(x,gsub("sd","se",names(x)))
+    }
+    else{
+        setnames(x,gsub("ctmle","est",names(x)))
+    }
     out <- x[,{
-        mean.A0 <- mean(psi.hat.A0)
-        mean.A1 <- mean(psi.hat.A1)
+        mean.A0 <- mean(est.A0)
+        mean.A1 <- mean(est.A1)
         bias.A0 <- mean.A0-true[["psi0.A0"]]
         bias.A1 <- mean.A1-true[["psi0.A1"]]
-        diff <- psi.hat.A1-psi.hat.A0
+        diff <- est.A1-est.A0
         true.diff <- true[["psi0.A1"]]-true[["psi0.A0"]]
         bias.diff <- mean(diff)-true.diff
-        cov.A0 <- cov.fun(est=psi.hat.A0,se=sd.eic.A0,true=true[["psi0.A0"]])
-        cov.A1 <- cov.fun(est=psi.hat.A1,se=sd.eic.A1,true=true[["psi0.A1"]])
-        cov.diff <- cov.fun(est=diff,se=sqrt(sd.eic.A1^2+sd.eic.A1^2),true=true.diff)
-        se.A0 <- mean(sd.eic.A0)
-        se.A1 <- mean(sd.eic.A1)
-        se.diff <- mean(sqrt(sd.eic.A0^2+sd.eic.A1^2))
-        mse.A0 <- mse(psi.hat.A0)
-        mse.A1 <- mse(psi.hat.A1)
+        cov.A0 <- cov.fun(est=est.A0,se=se.A0,true=true[["psi0.A0"]])
+        cov.A1 <- cov.fun(est=est.A1,se=se.A1,true=true[["psi0.A1"]])
+        cov.diff <- cov.fun(est=diff,se=sqrt(se.A1^2+se.A1^2),true=true.diff)
+        se.A0 <- mean(se.A0)
+        se.A1 <- mean(se.A1)
+        se.diff <- mean(sqrt(se.A0^2+se.A1^2))
+        mse.A0 <- mse(est.A0)
+        mse.A1 <- mse(est.A1)
         mse.diff <- mse(diff)
         out <- data.frame(matrix(c(true.A0=true[["psi0.A0"]],true.A1=true[["psi0.A1"]],true.diff=true.diff,
                                    mean.A0=mean.A0,mean.A1=mean.A1,mean.diff=mean.A1-mean.A0,
@@ -35,6 +44,7 @@ summary.watmle <- function(object,true){
                                    mse.A0=mse.A0,mse.A1=mse.A1,mse.diff=mse.diff),ncol=3,byrow=TRUE))
         names(out) <- c("A0","A1","psi")
         out <- cbind(Result=c("true","mean","bias","se","coverage","MSE"),out)
+        setnames(out,"Result",ifelse(corl,"LTMLE","cTMLE"))
     }]
     out
 }
