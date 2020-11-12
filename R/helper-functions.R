@@ -1,3 +1,4 @@
+# for objects generated with runTMLE or runLTMLE
 print.watmle <- function(x,...){
     # estimated values
     X <- data.table(do.call("rbind",x))
@@ -5,19 +6,22 @@ print.watmle <- function(x,...){
     X[]
 }
 
-#-------------------------------------------------------------------------------------------#
-## extract results of interest
-#-------------------------------------------------------------------------------------------#
-
-summary.watmle <- function(object,true){
+summary.watmle <- function(object,true,init=FALSE){
     x <- data.table(do.call("rbind",object))
-    corl <- length(grep("ltmle",names(x))>0)
-    if (corl){
-        setnames(x,gsub("ltmle","est",names(x)))
-        setnames(x,gsub("sd","se",names(x)))
-    }
-    else{
-        setnames(x,gsub("conTMLE","est",names(x)))
+    if (init){
+        x <- x[,grep("init",names(x),value=TRUE),with=FALSE]
+        if (NROW(x)==0) stop("This object does not provide initial estimates.")
+        setnames(x,sub("se.init","se",names(x)))
+        setnames(x,sub("init","est",names(x)))
+    }else{
+        corl <- length(grep("ltmle",names(x))>0)
+        if (corl){
+            setnames(x,gsub("ltmle","est",names(x)))
+            setnames(x,gsub("sd","se",names(x)))
+        }
+        else{
+            setnames(x,gsub("conTMLE","est",names(x)))
+        }
     }
     out <- x[,{
         mean.A0 <- mean(est.A0)
@@ -37,14 +41,17 @@ summary.watmle <- function(object,true){
         mse.A1 <- mse(est.A1)
         mse.diff <- mse(diff)
         out <- data.frame(matrix(c(true.A0=true[["psi0.A0"]],true.A1=true[["psi0.A1"]],true.diff=true.diff,
-                                   mean.A0=mean.A0,mean.A1=mean.A1,mean.diff=mean.A1-mean.A0,
+                                   mean.A0=mean.A0,mean.A1=mean.A1,mean.diff=mean.A0-mean.A1,
                                    bias.A0=bias.A0,bias.A1=bias.A1,bias.diff=bias.diff,
                                    se.A0=se.A0,se.A1=se.A1,se.diff=se.diff,
                                    cov.A0=cov.A0,cov.A1=cov.A1,cov.diff=cov.diff,
                                    mse.A0=mse.A0,mse.A1=mse.A1,mse.diff=mse.diff),ncol=3,byrow=TRUE))
         names(out) <- c("A0","A1","psi")
         out <- cbind(Result=c("true","mean","bias","se","coverage","MSE"),out)
-        setnames(out,"Result",ifelse(corl,"LTMLE","conTMLE"))
+        if (init)
+            setnames(out,"Result","Initial estimate")
+        else
+            setnames(out,"Result",ifelse(corl,"LTMLE","conTMLE"))
     }]
     print(out,digits=3)
     invisible(out)

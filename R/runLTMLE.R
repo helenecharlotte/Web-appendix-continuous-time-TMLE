@@ -1,11 +1,12 @@
-
-runLTMLE <- function(no_cores,
-                    K=10,                     # end of follow-up (tau)
-                    misspecify.init = FALSE,  # if TRUE, then misspecified model for outcome
-                    M = 5,                    # number of simulation repetitions
-                    n = 1000,                 # sample size
-                    seed,
-                    progress.bar=3){
+runLTMLE <- function(K=10,
+                     n = 1000,
+                     misspecify.init = FALSE,
+                     seed,
+                     M = 5,
+                     no_cores=1,
+                     progress.bar=3,
+                     ...){
+    if (M==1) progress.bar <- -1
     message("\nEstimating psi with LTMLE based on observed data:\n")
     if (no_cores>1) registerDoParallel(no_cores)
     if (progress.bar>0) {
@@ -15,7 +16,7 @@ runLTMLE <- function(no_cores,
     out <- foreach(m=1:M, .errorhandling="pass") %dopar% {
         if (progress.bar>0) { setTxtProgressBar(pb, m)}
         # generate data
-        dt <- sim.data(n,seed=seed+m,censoring=TRUE,K=K)
+        dt <- sim.data(n,seed=seed+m,censoring=TRUE,K=K,...)
         estLTMLE(dt)
     }
     if (progress.bar>0)cat("\n")

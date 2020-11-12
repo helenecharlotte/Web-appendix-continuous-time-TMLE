@@ -6,46 +6,57 @@ This is the web-appendix of our manuscript entitled
 
 =[[provide link to arXiv]]=
 
-This repository provides the R-codes behind our empirical studies for
-proof-of-concept so that anonymous users can reproduce the results.
+We provide the R-codes behind our empirical studies as described in
+the manuscript. This is for proof-of-concept so that anonymous users
+can reproduce the results. 
 
-Note that we here do not (yet) provide user-friendly code which
-implements our method in a computational efficient way ... but we are
-currently working hard on achieving exactly this. Stay tuned! 
+Note that we are currently working hard on achieving user-friendly
+code which implements our method outside the limited setting of the
+empirical studies presented here. Stay tuned!
 
-The current implementation requires a large memory for simulations of
-many time points. 
+Below we show how to load and use the code.
 
-Below we describe the simulation scenario in terms of the actual
-R-code. 
+IMPORTANT: For simulations of many time points, i.e., with K=100, the
+current implementation requires a computer with a rather large memory
+
+We also describe the simulation scenario in terms of the actual R-code
+and indicate how one could deviate to generate different scenarios.
 
 * Running the code
 
 The following code uses one computing core to calculate the estimates
 of conTMLE and LTMLE using a single simulated dataset. The code that
 produces the empirical results of Table 1 and Table 2 of the
-manuscript are shown længer down.
+manuscript are shown longer down.
 
 #+ATTR_LATEX: :options otherkeywords={}, deletekeywords={}
 #+BEGIN_SRC R  :results output :exports both  :session *R* :cache yes  
 # NOTE: you need to set the working directory 
 source("./examples/load.R")
-K5.conTMLE <- runTMLE(no_cores=1,K=5,misspecify.init = FALSE,M = 1,n = 1000,seed=23,progress.bar=-1)
+K5.conTMLE <- runTMLE(K=5, # number of time points
+                      n = 1000, # sample size
+                      misspecify.init = FALSE, # if TRUE, the initial outcome model is misspecified (see manuscript)
+                      seed=23, # control randomness of data simulation
+                      M = 1, # number of simulations
+                      no_cores=1) # number of computing cores
 K5.conTMLE
 #+END_SRC
 
-#+RESULTS[<2020-11-11 10:48:36> 1f6f9e60188dc96dcada7ce6ff7cfe123a2267dd]:
+: Estimating psi with TMLE based on observed data:
 :    conTMLE.A0      se.A0   init.A0 se.init.A0 conTMLE.A1      se.A1   init.A1 se.init.A1
 : 1:  0.5305897 0.03168532 0.5069958 0.03172444  0.4241032 0.02574778 0.4129555 0.02576413
 
 #+BEGIN_SRC R  :results output :exports both  :session *R* :cache yes  
 # NOTE: you need to set the working directory 
 source("./examples/load.R")
-K5.ltmle <- runLTMLE(no_cores=1,K=5,misspecify.init = FALSE,M = 1,n = 1000,seed=23,progress.bar=-1)
+K5.ltmle <- runLTMLE(K=5,
+                     misspecify.init = FALSE,
+                     seed=23,
+                     M = 1,
+                     n = 1000)
 K5.ltmle
 #+END_SRC
 
-#+RESULTS[<2020-11-10 17:36:09> f43f9656ddcdd88083218be5cebf6ea917011a36]:
 : 
 : Estimating psi with LTMLE based on observed data:
 :     ltmle.A0      sd.A0  ltmle.A1      sd.A1
@@ -59,8 +70,6 @@ We provide code that produces results for =K=5= and =K=30= for LTMLE
 and our new method, conTMLE. The code in files [[examples/table1.R]] and
 [[examples/table2.R]] generate the following results:
 
-#+BEGIN_SRC R  :results output raw drawer  :exports both  :session *R* :cache yes  
-#+END_SRC
 
 *** K=5
 #+BEGIN_SRC R  :results output :exports both  :session *R* :cache yes  
@@ -68,28 +77,25 @@ source("./examples/load.R")
 table1.K5.true <- readRDS(file="./examples/table1-K5-true.rds")
 table1.K5.ltmle <- readRDS(file="./examples/table1-K5-ltmle.rds")
 table1.K5.conTMLE <- readRDS(file="./examples/table1-K5-conTMLE.rds")
-## table1.K5.conTMLE <- table1.K5.conTMLE[sample(1:1000,size=200,replace=FALSE)]
-## class(table1.K5.conTMLE) <- "watmle"
 summary(object=table1.K5.ltmle,true=table1.K5.true)
 summary(object=table1.K5.conTMLE,true=table1.K5.true)
 #+END_SRC
 
-#+RESULTS[<2020-11-11 06:45:21> a80f575221ddbaa98b856dfc8b1b69488182a22a]:
 #+begin_example
-     LTMLE       A0       A1       psi
-1     true 0.559494 0.424656  0.134838
-2     mean 0.560405 0.424974 -0.135430
-3     bias 0.000911 0.000318  0.000592
-4       se 0.038240 0.029796  0.048478
-5 coverage 0.974000 0.951000  0.969000
-6      MSE 0.034042 0.028738  0.042971
-     conTMLE       A0       A1       psi
-1     true 0.559494 0.424656  0.134838
-2     mean 0.560441 0.425019 -0.135422
-3     bias 0.000947 0.000363  0.000584
-4       se 0.030199 0.024911  0.039148
-5 coverage 0.941000 0.923000  0.939000
-6      MSE 0.031565 0.027283  0.040191
+     LTMLE      A0       A1      psi
+1     true 0.55950  0.42445  0.13505
+2     mean 0.56062  0.42323 -0.13739
+3     bias 0.00112 -0.00122  0.00234
+4       se 0.03808  0.02981  0.04836
+5 coverage 0.97200  0.95400  0.97100
+6      MSE 0.03294  0.02836  0.04418
+   conTMLE      A0       A1      psi
+1     true 0.55950  0.42445  0.13505
+2     mean 0.56028  0.42334 -0.13694
+3     bias 0.00078 -0.00111  0.00189
+4       se 0.03011  0.02485  0.03904
+5 coverage 0.94900  0.92600  0.93200
+6      MSE 0.03087  0.02644  0.04146
 #+end_example
 
 *** K=30
@@ -102,22 +108,21 @@ summary(object=table1.K30.ltmle,true=table1.K30.true)
 summary(object=table1.K30.conTMLE,true=table1.K30.true)
 #+END_SRC
 
-#+RESULTS[<2020-11-11 06:42:08> 915f2184a5660e5f680b7c37671a10c87251a998]:
 #+begin_example
-     LTMLE      A0      A1     psi
-1     true 0.61191 0.47326  0.1387
-2     mean 0.61598 0.48202 -0.1340
-3     bias 0.00406 0.00876 -0.0047
-4       se 0.08108 0.06812  0.1059
-5 coverage 0.97600 0.96700  0.9710
-6      MSE 0.06371 0.06047  0.0870
-     conTMLE       A0        A1       psi
-1     true  0.61191  0.473262  0.138652
-2     mean  0.61020  0.472410 -0.137794
-3     bias -0.00171 -0.000852 -0.000858
-4       se  0.04366  0.036767  0.057076
-5 coverage  0.93700  0.947000  0.954000
-6      MSE  0.04496  0.037248  0.058023
+     LTMLE      A0      A1      psi
+1     true 0.61191 0.47326 0.138652
+2     mean 0.61935 0.47985 0.139503
+3     bias 0.00744 0.00659 0.000851
+4       se 0.08117 0.06886 0.106439
+5 coverage 0.97100 0.96700 0.975000
+6      MSE 0.06149 0.06178 0.088200
+   conTMLE      A0        A1     psi
+1     true 0.61191  0.473262 0.13865
+2     mean 0.61333  0.473027 0.14031
+3     bias 0.00142 -0.000235 0.00165
+4       se 0.04342  0.036658 0.05683
+5 coverage 0.94500  0.939000 0.94400
+6      MSE 0.04481  0.037253 0.05902
 #+end_example
 
 ** Table 2
@@ -127,52 +132,92 @@ summary(object=table1.K30.conTMLE,true=table1.K30.true)
 source("./examples/load.R")
 table2.K30.true <- readRDS(file="./examples/table1-K30-true.rds")
 table2.K30.misspecified <- readRDS(file="./examples/table2-K30-conTMLE.rds")
+summary(object=table2.K30.misspecified,true=table2.K30.true,init=TRUE)
 summary(object=table2.K30.misspecified,true=table2.K30.true)
 #+END_SRC
 
-#+RESULTS[<2020-11-11 06:36:42> ea82779657abf9a862e8686c263c1d4fd0ca6cfa]:
-:      conTMLE       A0        A1      psi
-: 1     true  0.61191  0.473262  0.13865
-: 2     mean  0.60904  0.472868 -0.13617
-: 3     bias -0.00287 -0.000394 -0.00248
-: 4       se  0.04369  0.036876  0.05717
-: 5 coverage  0.93900  0.941000  0.95200
-: 6      MSE  0.04519  0.037545  0.05824
+#+begin_example
+  Initial estimate      A0     A1     psi
+1             true  0.6119 0.4733  0.1387
+2             mean  0.5810 0.4937  0.0873
+3             bias -0.0309 0.0205 -0.0514
+4               se  0.0444 0.0369  0.0577
+5         coverage  0.9930 0.9870  0.9700
+6              MSE  0.0202 0.0218  0.0292
+   conTMLE          A0       A1       psi
+1     true  0.61191400 0.473262  0.138652
+2     mean  0.61190514 0.473417  0.138488
+3     bias -0.00000886 0.000155 -0.000164
+4       se  0.04354014 0.036761  0.056983
+5 coverage  0.94700000 0.942000  0.951000
+6      MSE  0.04420398 0.037150  0.058228
+#+end_example
 
-* Changing the simulation scenario
+* The simulation scenario
 
-The current simulation setting is best described with the following
-R-code:
+The current simulation setting is defined by the function =sim.data=
+(see file [[R/sim.data.R]]). The way we simulate the data is best
+described with the following example. Baseline covariates =L0= and
+treatment =A0= are generated first. Followup values of both processes
+(=Lk=, =Ak=) as well as censoring (=Ck=) and outcome (=Yk=) processes
+are then generated in a loop through the values =1:K=. The value
+=Yk+1= contains the status of the outcome at the end of followup.
+
+#+ATTR_LATEX: :options otherkeywords={}, deletekeywords={}
+#+BEGIN_SRC R  :results output   :exports both  :session *R* :cache yes  
+sim.data(n=10,K=3,seed=3)
+#+END_SRC
+
+#+begin_example
+    id        L0 A0 Y1 dN.L1 L1 dN.A1 A1 C1 Y2 dN.L2 L2 dN.A2 A2 C2 Y3 dN.L3 L3 dN.A3 A3 C3 Y4
+ 1:  1 0.8333333  0  0     0  0     0  0  0  0     1  0     0  0  0  0     0  0     0  0  0  0
+ 2:  2 0.3333333  1  0     0  0     1  0  0  0     0  0     0  0  0  0     0  0     1  1  0  0
+ 3:  3 0.6666667  0  0     1  1     0  0  0  0     0  1     0  0  0  0     0  1     0  0  0  0
+ 4:  4 0.6666667  0  0     0  0     1  0  0  0     0  0     0  0  0  0     1  0     0  0  0  0
+ 5:  5 0.3333333  1  0     0  0     0  1  0  0     1  1     0  1  0  0     1  1     1  0  0  0
+ 6:  6 0.5000000  0  0     0  0     1  0  0  1     1  1     1  0  0  1     1  1     0  0  0  1
+ 7:  7 0.6666667  1  0     0  0     0  1  0  0     0  0     1  1  0  0     0  0     1  1  0  0
+ 8:  8 0.3333333  0  1     0  0     1  1  0  1     0  0     1  0  0  1     1  1     1  0  0  1
+ 9:  9 0.8333333  1  0     0  0     0  1  0  0     0  0     1  1  0  0     1  0     0  1  0  0
+10: 10 0.3333333  0  0     0  0     0  0  0  0     0  0     0  0  0  0     0  0     1  1  0  0
+#+end_example
+
+In our current setting, are all dependencies between the processes
+limited to the previous values (Markov) and the baseline values. Note
+also that the specific parameter constellation depends on the value of
+=K=.
 
 #+BEGIN_SRC R  :results output raw drawer  :exports code  :session *R* :cache yes  
 # Step 1: baseline covariate 
 L0 <- sample(1:6, n, replace=1000)/6
-# Step 2: baseline treatment
+# Baseline treatment
 form.A0 <- function(L0){
   cbind(-0.1+0.25*L0)
 }
-# Step 3: covariate monitoring process: time for current measurement 
-#         depends on previous measurements (X.prev)
+# Covariate monitoring process: time of current measurement 
 form.dN.L <- function(L0, dN.L.prev, L.prev, A.prev){
   -0.2-0.05*K-0.025*(K>7)-0.25*dN.L.prev-0.15*L0-0.1*(A.prev==1)+0.3*L.prev
 }
-# Step 4: treatment monitoring process: time for current measurement 
-#         depends on time of last measurement (X.prev)
-form.dN.A <- function(L0, dN.A.prev, L.prev, A.prev, no.jumps.A, L.star){
+# Treatment monitoring process, time of current measurement 
+form.dN.A <- function(L0, dN.A.prev, L.prev, A.prev){
   -0.75-0.05*K-0.42*dN.A.prev+0.15*L0+0.3*(A.prev==2)+0.4*(A.prev==1)-0.25*L.prev
 }
+# Covariate values at monitoring times
+form.L <- function(L0, L.prev, A.prev, A0){
+  0.5-0.4*A0+0.15*L0-0.25*(A.prev==1)+0.4*L.prev
+}
+# Treatment values at monitoring times
+form.A <- function(L0, L.prev, A.prev, A0){
+  cbind(-1+(1-A0)*0.6+(1-A.prev)*0.4+L.prev*0.6-0.15*(K>15)*L.prev)
+}
+# Censoring process
 form.C <- function(L0, L.prev, A.prev, A0){
   -3.95+(K>40)*5-0.4*K^{2/3}-0.24*(K>2 & K<=4)-0.4*(K>4 & K<=9)
   -(K>9)*0.4*K^{1/5}+0.2*(K>25)*K^{1/4}
   +0.1*L0+0.2*(A0==1)+0.9*(A0==2)+2.15*L.prev
 }
-form.L <- function(L0, L.prev, A.prev, A0){
-  0.5-0.4*A0+0.15*L0-0.25*(A.prev==1)+0.4*L.prev
-}
-form.A <- function(L0, L.prev, A.prev, A0){
-  cbind(-1+(1-A0)*0.6+(1-A.prev)*0.4+L.prev*0.6-0.15*(K>15)*L.prev)
-}
-form.Y <- function(L0, L.prev, A.prev, A0, no.jumps.A, dN.A.prev) {
+# Outcome process
+form.Y <- function(L0, L.prev, A.prev, A0, dN.A.prev) {
   -1.1-0.33*K/3*(K>2 & K<=4)-0.25*K^{2/3}-0.25*(K>4 & K<=9)-
     (K>25 & K<45)*0.3*K^{1/5}-
       (K>75)*0.31+(K>85)*0.2-
@@ -180,6 +225,39 @@ form.Y <- function(L0, L.prev, A.prev, A0, no.jumps.A, dN.A.prev) {
       0.4*L.prev-0.25*A0+0.35*L.prev*A0+(K>75)*0.1*A0+(K>85)*0.01*A0
 }
 #+END_SRC
+
+** Deviating from the current setting
+
+For example, we can remove the direct effect of the treatment on
+outcome:
+
+#+BEGIN_SRC R  :results output   :exports both  :session *R* :cache yes  
+source("./examples/load.R")
+outcome.formula <- function(L0, L.prev, A.prev, A0, dN.A.prev) {
+  return(-2 # intercept
+         -0*A.prev # treatment effect
+         + 0.4*L.prev  # covariate effect
+         +0*A0 # baseline treatment effect
+         )
+}
+compute.true(K=5,n=100000,B=1,seed=8,form.Y=outcome.formula,progress.bar=-1)
+# sim.data(n=10,K=3,seed=3,form.Y=outcome.formula)
+test <- runTMLE(K=5, # number of time points
+                n = 200, # sample size
+                misspecify.init = FALSE, # if TRUE, the initial outcome model is misspecified (see manuscript)
+                seed=3, # control randomness of data simulation
+                M = 1, # number of simulations
+                no_cores=1,
+                form.Y=outcome.formula,progress.bar=-1)
+test
+#+END_SRC
+
+: psi0.A0 psi0.A1 
+: 0.58832 0.57308
+: 
+: Estimating psi with TMLE based on observed data:
+:    conTMLE.A0     se.A0   init.A0 se.init.A0 conTMLE.A1      se.A1   init.A1 se.init.A1
+: 1:  0.5276342 0.0617248 0.5752971 0.06294652  0.5207098 0.05638942 0.5568681 0.05656506
 
 *  Dependencies 
 
@@ -191,7 +269,6 @@ The code has been tested with the following R version
 version
 #+END_SRC
 
-#+RESULTS[<2020-11-09 18:12:47> 143b9cabc93679f20607ffef9eeb3eadefba88c3]:
 #+begin_example
                _                           
 platform       x86_64-pc-linux-gnu         
@@ -217,7 +294,6 @@ pp <- c("data.table", "zoo", "stringr", "ltmle", "parallel", "foreach", "doParal
 Publish::org(data.table(Package=pp,Version=sapply(pp,function(x) as.character(packageVersion(x)))))
 #+END_SRC
 
-#+RESULTS[<2020-11-09 18:13:13> ec9009aff7db8031012c07b48c3be553f0446e14]:
 :results:
 | Package    | Version |
 |------------+---------|
