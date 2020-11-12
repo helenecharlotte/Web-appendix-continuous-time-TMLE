@@ -156,7 +156,7 @@ summary(object=table2.K30.misspecified,true=table2.K30.true)
 * The simulation scenario
 
 The current simulation setting is defined by the function =sim.data=
-(see file [[R/sim.data.R]]). The way we simulate the data is best
+(see file [[R/sim-data.R]]). The way we simulate the data is best
 described with the following example. Baseline covariates =L0= and
 treatment =A0= are generated first. Followup values of both processes
 (=Lk=, =Ak=) as well as censoring (=Ck=) and outcome (=Yk=) processes
