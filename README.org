@@ -202,6 +202,36 @@ sim.data(n=10,K=3,seed=3)
 10: 10 0.3333333  0  0     0  0     0  0  0  0     0  0     0  0  0  0     0  0     1  1  0  0
 #+end_example
 
+It makes more sense to look at the data in long format that only
+includes a row only at monitoring times as follows: 
+
+
+#+ATTR_LATEX: :options otherkeywords={}, deletekeywords={}
+#+BEGIN_SRC R  :results output   :exports both  :session *R* :cache yes  
+print.long.format(sim.data(n=3,K=30,seed=3))   
+#+END_SRC
+
+#+RESULTS[<2020-11-13 17:03:28> 4824ac1296d082fde418b5bbeab2e528d27e156f]:
+
+#+begin_example
+    id  k        L0 A0 A C L Y dN.A dN.L
+ 1:  1  2 0.8333333  0 0 0 0 0    0    1
+ 2:  1  5 0.8333333  0 1 0 0 0    1    0
+ 3:  1  6 0.8333333  0 0 0 0 0    1    0
+ 4:  1  7 0.8333333  0 1 0 0 0    1    0
+ 5:  1  9 0.8333333  0 0 0 0 0    1    0
+ 6:  1 18 0.8333333  0 0 0 0 0    1    0
+ 7:  1 27 0.8333333  0 0 0 0 0    0    1
+ 8:  2  3 0.3333333  1 1 0 0 0    1    0
+ 9:  2  8 0.3333333  1 1 0 0 0    1    0
+10:  2 12 0.3333333  1 1 0 0 0    1    0
+11:  2 15 0.3333333  1 1 0 1 0    0    1
+12:  2 22 0.3333333  1 1 0 1 0    0    1
+13:  2 28 0.3333333  1 1 0 1 0    0    1
+14:  3  5 0.6666667  0 0 0 0 0    1    0
+15:  3 12 0.6666667  0 0 0 0 1    0    1
+#+end_example
+
 In our current setting, all dependencies between the processes are
 limited to the previous values and the baseline values. Note also that
 the specific parameter constellation depends on the value of =K=

@@ -6,6 +6,24 @@ print.watmle <- function(x,...){
     X[]
 }
 
+print.long.format <- function(dt) {
+     dt.melt <- suppressWarnings(melt(dt, id=c("id", "L0", "A0")))
+
+     dt.melt[, k:=numextract(variable)]
+     dt.melt[, variable:=gsub('[[:digit:]]+', '', variable)]
+
+     dt.long <- dcast(dt.melt, id+k+L0+A0~variable)[!is.na(k) & k>0]
+     dt.long[id==1]
+
+     dt.long[, (names(dt.long)):=na.locf(.SD, na.rm=FALSE), by=id, .SDcols=names(dt.long)]
+
+     dt.long[, tmp:=Y+C]#, by=c("id", "Y", "C")]
+     dt.long[, count:=1:.N, by=c("id", "tmp")]
+     
+     dt.long[((dN.A==1 | dN.L==1 | k==max(k)) | (count==1 & tmp==1)) &
+             !(tmp>=1 & count>1)][, -c("tmp", "count"), with=FALSE]
+}
+
 summary.watmle <- function(object,true,init=FALSE){
     x <- data.table(do.call("rbind",object))
     if (init){
