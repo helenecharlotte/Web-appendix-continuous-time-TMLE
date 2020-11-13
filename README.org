@@ -211,7 +211,6 @@ includes a row only at monitoring times as follows:
 print.long.format(sim.data(n=3,K=30,seed=3))   
 #+END_SRC
 
-#+RESULTS[<2020-11-13 17:03:28> 4824ac1296d082fde418b5bbeab2e528d27e156f]:
 
 #+begin_example
     id  k        L0 A0 A C L Y dN.A dN.L
