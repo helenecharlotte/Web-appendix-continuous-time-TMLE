@@ -20,7 +20,8 @@ IMPORTANT: For simulations of many time points, i.e., with K=100, the
 current implementation requires a computer with a rather large memory.
 
 We also describe the simulation scenario in terms of the actual R-code
-and indicate how one could deviate to generate different scenarios.
+and indicate how one can change the code to generate different
+scenarios.
 
 * Running the code
 
@@ -155,13 +156,32 @@ summary(object=table2.K30.misspecified,true=table2.K30.true)
 
 * The simulation scenario
 
+
+** Overall description
+ 
+We consider a setting where subjects of a population are followed for
+=K= days of follow-up time. On any given day, any subject may change
+treatment, covariates, may be lost to follow-up (right-censored) or
+may experience the outcome of interest. Both the treatment and the
+censoring mechanisms are subject to time-dependent confounding.  The
+data are simulated such that the number of monitoring times per
+subject are approximately the same across different =K=. Thus, the
+larger =K= is, the less events are observed at single monitoring
+times.
+
+** Current setting
+
+
 The current simulation setting is defined by the function =sim.data=
 (see file [[R/sim-data.R]]). The way we simulate the data is best
 described with the following example. Baseline covariates =L0= and
 treatment =A0= are generated first. Followup values of both processes
 (=Lk=, =Ak=) as well as censoring (=Ck=) and outcome (=Yk=) processes
 are then generated in a loop through the values =1:K=. The value
-=Yk+1= contains the status of the outcome at the end of followup.
+=Yk+1= contains the status of the outcome at the end of followup. The
+=sim.data= function outputs the data in wide format; this is the
+format needed for =ltmle=. Our estimation function =conTMLE= transform
+the data to long format.
 
 #+ATTR_LATEX: :options otherkeywords={}, deletekeywords={}
 #+BEGIN_SRC R  :results output   :exports both  :session *R* :cache yes  
@@ -182,10 +202,11 @@ sim.data(n=10,K=3,seed=3)
 10: 10 0.3333333  0  0     0  0     0  0  0  0     0  0     0  0  0  0     0  0     1  1  0  0
 #+end_example
 
-In our current setting, are all dependencies between the processes
-limited to the previous values (Markov) and the baseline values. Note
-also that the specific parameter constellation depends on the value of
-=K=.
+In our current setting, all dependencies between the processes are
+limited to the previous values and the baseline values. Note also that
+the specific parameter constellation depends on the value of =K=
+(needed for the number of monitoring times per subject to be
+approximately the same across different =K=).
 
 #+BEGIN_SRC R  :results output raw drawer  :exports code  :session *R* :cache yes  
 # Step 1: baseline covariate 
@@ -226,7 +247,8 @@ form.Y <- function(L0, L.prev, A.prev, A0, dN.A.prev) {
 }
 #+END_SRC
 
-** Deviating from the current setting
+** Changing the current setting
+
 
 For example, we can remove the direct effect of the treatment on
 outcome:
