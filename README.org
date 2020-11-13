@@ -17,7 +17,7 @@ empirical studies presented here. Stay tuned!
 Below we show how to load and use the code.
 
 IMPORTANT: For simulations of many time points, i.e., with K=100, the
-current implementation requires a computer with a rather large memory
+current implementation requires a computer with a rather large memory.
 
 We also describe the simulation scenario in terms of the actual R-code
 and indicate how one could deviate to generate different scenarios.
