@@ -15,11 +15,11 @@ compute.true <- function(K, # time grid
     true <- foreach(m=1:B, .errorhandling="pass",.combine="rbind") %dopar% {
         if (progress.bar>0) { setTxtProgressBar(pb, m)}
         dt.A0 <- sim.data(n=n, seed=seed+m,
-                          intervention.A=function(L0, L.prev, A.prev, A1) cbind(logit(1)),
+                          intervention.A=function(L0, L.prev, A.prev, A1) (qlogis(1)),
                           K=K,...)
         psi0.A0 <- mean(dt.A0[[paste0("Y", K+1)]])
         dt.A1 <- sim.data(n=n, seed=seed+B+m+1,
-                          intervention.A=function(L0, L.prev, A.prev, A1) cbind(logit(0)),
+                          intervention.A=function(L0, L.prev, A.prev, A1) (qlogis(0)),
                           K=K,...)
         Y.A1 <- dt.A1[[paste0("Y", K+1)]]
         Y.A0 <- dt.A0[[paste0("Y", K+1)]]
