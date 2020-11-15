@@ -77,27 +77,29 @@ and our new method, conTMLE. The code in files [[examples/table1.R]] and
 source("./examples/load.R")
 table1.K5.true <- readRDS(file="./examples/table1-K5-true.rds")
 table1.K5.ltmle <- readRDS(file="./examples/table1-K5-ltmle.rds")
-table1.K5.conTMLE <- readRDS(file="./examples/table1-K5-conTMLE.rds")
+table1.K5.conTMLE <- readRDS(file="./examples/table1-K5-conTMLE.rds") 
 summary(object=table1.K5.ltmle,true=table1.K5.true)
 summary(object=table1.K5.conTMLE,true=table1.K5.true)
 #+END_SRC
 
+#+RESULTS[<2020-11-15 11:08:03> 0fefa8eb4beb77834ceea1f0d343917980d1b4bb]:
 #+begin_example
-     LTMLE      A0       A1      psi
-1     true 0.55950  0.42445  0.13505
-2     mean 0.56062  0.42323 -0.13739
-3     bias 0.00112 -0.00122  0.00234
-4       se 0.03808  0.02981  0.04836
-5 coverage 0.97200  0.95400  0.97100
-6      MSE 0.03294  0.02836  0.04418
-   conTMLE      A0       A1      psi
-1     true 0.55950  0.42445  0.13505
-2     mean 0.56028  0.42334 -0.13694
-3     bias 0.00078 -0.00111  0.00189
-4       se 0.03011  0.02485  0.03904
-5 coverage 0.94900  0.92600  0.93200
-6      MSE 0.03087  0.02644  0.04146
+     LTMLE      A0       A1     psi
+1     true 0.55950  0.42445 0.13505
+2     mean 0.56062  0.42323 0.13739
+3     bias 0.00112 -0.00122 0.00234
+4       se 0.03808  0.02981 0.04836
+5 coverage 0.97200  0.95400 0.97100
+6      MSE 0.03294  0.02836 0.04418
+   conTMLE       A0       A1      psi
+1     true 0.559498 0.424449 0.135049
+2     mean 0.560344 0.425054 0.135290
+3     bias 0.000846 0.000605 0.000241
+4       se 0.028401 0.026642 0.038941
+5 coverage 0.935000 0.942000 0.939000
+6      MSE 0.029639 0.027319 0.040931
 #+end_example
+
 
 *** K=30
 #+BEGIN_SRC R  :results output :exports both  :session *R* :cache yes  
@@ -180,8 +182,7 @@ treatment =A0= are generated first. Followup values of both processes
 are then generated in a loop through the values =1:K=. The value
 =Yk+1= contains the status of the outcome at the end of followup. The
 =sim.data= function outputs the data in wide format; this is the
-format needed for =ltmle=. Our estimation function =conTMLE= transform
-the data to long format.
+format needed for =ltmle=. 
 
 #+ATTR_LATEX: :options otherkeywords={}, deletekeywords={}
 #+BEGIN_SRC R  :results output   :exports both  :session *R* :cache yes  
@@ -202,33 +203,38 @@ sim.data(n=10,K=3,seed=3)
 10: 10 0.3333333  0  0     0  0     0  0  0  0     0  0     0  0  0  0     0  0     1  1  0  0
 #+end_example
 
-It makes more sense to look at the data in long format that only
-includes a row only at monitoring times as follows: 
+Our estimation function =conTMLE= transform the data to long format
+which is more suitable when =K= is large since we only need a row at
+the monitoring times:
 
 
 #+ATTR_LATEX: :options otherkeywords={}, deletekeywords={}
 #+BEGIN_SRC R  :results output   :exports both  :session *R* :cache yes  
-print.long.format(sim.data(n=3,K=30,seed=3))      
+print.long.format(sim.data(n=5,K=50,seed=14))       
 #+END_SRC
 
+#+RESULTS[<2020-11-15 10:44:14> efac44710d38b678d3ae6e3315f8add30a070e6a]:
 #+begin_example
     id  k        L0 A0 A C L Y dN.A dN.L
- 1:  1  6 0.8333333  0 0 0 1 0    0    1
- 2:  1  8 0.8333333  0 0 0 1 0    0    1
- 3:  1 10 0.8333333  0 0 0 0 0    0    1
- 4:  1 18 0.8333333  0 0 0 1 0    0    1
- 5:  1 21 0.8333333  0 1 0 1 0    1    1
- 6:  1 25 0.8333333  0 0 0 1 0    1    0
- 7:  1 28 0.8333333  0 0 0 1 0    0    1
- 8:  1 30 0.8333333  0 0 0 1 0    1    0
- 9:  1 31 0.8333333  0 0 0 1 0    1    0
-10:  2  4 0.3333333  0 0 0 1 0    0    1
-11:  2  6 0.3333333  0 0 0 1 0    0    1
-12:  2 11 0.3333333  0 0 0 0 0    0    1
-13:  2 15 0.3333333  0 1 0 0 0    1    0
-14:  2 16 0.3333333  0 1 0 1 0    0    1
-15:  2 17 0.3333333  0 1 0 1 1    0    0
-16:  3  4 0.6666667  1 1 0 0 1    0    0
+ 1:  1 13 0.1666667  1 1 0 1 0    0    1
+ 2:  1 20 0.1666667  1 1 1 1 0    0    0
+ 3:  2  5 0.1666667  0 0 0 1 0    0    1
+ 4:  2 13 0.1666667  0 0 0 1 0    0    1
+ 5:  2 16 0.1666667  0 0 0 1 1    0    0
+ 6:  3  6 0.5000000  0 1 0 0 0    1    0
+ 7:  3 16 0.5000000  0 1 0 1 0    0    1
+ 8:  3 17 0.5000000  0 1 0 1 1    0    0
+ 9:  4 25 0.6666667  0 0 0 1 0    0    1
+10:  4 29 0.6666667  0 0 0 1 0    0    1
+11:  4 37 0.6666667  0 0 0 1 0    1    0
+12:  4 38 0.6666667  0 0 0 1 1    0    0
+13:  5 10 0.5000000  0 0 0 0 0    1    0
+14:  5 32 0.5000000  0 0 0 1 0    0    1
+15:  5 33 0.5000000  0 0 0 0 0    0    1
+16:  5 39 0.5000000  0 0 0 0 0    0    1
+17:  5 44 0.5000000  0 1 0 0 0    1    0
+18:  5 45 0.5000000  0 1 0 0 0    0    1
+19:  5 51 0.5000000  0 1 0 0 0    0    0
 #+end_example
 
 In our current setting, all dependencies between the processes are
@@ -242,57 +248,60 @@ approximately the same across different =K=).
 L0 <- sample(1:6, n, replace=1000)/6
 # Baseline treatment
 form.A0 <- function(L0){
-  cbind(-0.1+0.25*L0)
+    -0.1+0.25*L0
 }
 # Covariate monitoring process: time of current measurement 
 form.dN.L <- function(L0, dN.L.prev, L.prev, A.prev){
-  -0.2-0.05*K-0.025*(K>7)-0.25*dN.L.prev-0.15*L0-0.1*(A.prev==1)+0.3*L.prev
+    -0.2-0.05*K-0.025*(K>7)-0.25*dN.L.prev-0.15*L0-0.1*(A.prev==1)+0.3*L.prev
 }
 # Treatment monitoring process, time of current measurement 
 form.dN.A <- function(L0, dN.A.prev, L.prev, A.prev){
-  -0.75-0.05*K-0.42*dN.A.prev+0.15*L0+0.3*(A.prev==2)+0.4*(A.prev==1)-0.25*L.prev
+    -0.75-0.05*K-0.42*dN.A.prev+0.15*L0+0.3*(A.prev==2)+0.4*(A.prev==1)-0.25*L.prev
 }
 # Covariate values at monitoring times
 form.L <- function(L0, L.prev, A.prev, A0){
-  0.5-0.4*A0+0.15*L0-0.25*(A.prev==1)+0.4*L.prev
+    0.5-0.4*A0+0.15*L0-0.25*(A.prev==1)+0.4*L.prev
 }
 # Treatment values at monitoring times
 form.A <- function(L0, L.prev, A.prev, A0){
-  cbind(-1+(1-A0)*0.6+(1-A.prev)*0.4+L.prev*0.6-0.15*(K>15)*L.prev)
+    -1+(1-A0)*0.6+(1-A.prev)*0.4+L.prev*0.6-0.15*(K>15)*L.prev
 }
 # Censoring process
 form.C <- function(L0, L.prev, A.prev, A0){
-  -3.95+(K>40)*5-0.4*K^{2/3}-0.24*(K>2 & K<=4)-0.4*(K>4 & K<=9)
-  -(K>9)*0.4*K^{1/5}+0.2*(K>25)*K^{1/4}
-  +0.1*L0+0.2*(A0==1)+0.9*(A0==2)+2.15*L.prev
+    -3.95+(K>40)*5-0.4*K^{2/3}-0.24*(K>2 & K<=4)-0.4*(K>4 & K<=9)
+    -(K>9)*0.4*K^{1/5}+0.2*(K>25)*K^{1/4}
+    +0.1*L0+0.2*(A0==1)+0.9*(A0==2)+2.15*L.prev
 }
 # Outcome process
 form.Y <- function(L0, L.prev, A.prev, A0, dN.A.prev) {
-  -1.1-0.33*K/3*(K>2 & K<=4)-0.25*K^{2/3}-0.25*(K>4 & K<=9)-
-    (K>25 & K<45)*0.3*K^{1/5}-
-      (K>75)*0.31+(K>85)*0.2-
-      (K>25 & K<75)*0.5*K^{1/5}+0.6*(K>25)*K^{1/4}-0.25*A.prev+
-      0.4*L.prev-0.25*A0+0.35*L.prev*A0+(K>75)*0.1*A0+(K>85)*0.01*A0
+    -1.1-0.33*K/3*(K>2 & K<=4)-0.25*K^{2/3}-0.25*(K>4 & K<=9)-
+        (K>25 & K<45)*0.3*K^{1/5}-
+            (K>75)*0.31+(K>85)*0.2-
+            (K>25 & K<75)*0.5*K^{1/5}+0.6*(K>25)*K^{1/4}-0.25*A.prev+
+            0.4*L.prev-0.25*A0+0.35*L.prev*A0+(K>75)*0.1*A0+(K>85)*0.01*A0
 }
 #+END_SRC
 
 ** Changing the current setting
 
-
-For example, we can remove the direct effect of the treatment on
-outcome:
+We have to be careful when changing the simulation setting: For
+example, just changing the distribution of =A= given the history may
+result in positivity violation. In the following, we instead as an
+example remove the direct effect (note that there is still an effect
+through the =L= process) of the treatment on outcome. We further
+consider a smaller sample size of =n=400=:
 
 #+BEGIN_SRC R  :results output   :exports both  :session *R* :cache yes  
 source("./examples/load.R")
 outcome.formula <- function(L0, L.prev, A.prev, A0, dN.A.prev) {
-  return(-2 # intercept
-         -0*A.prev # treatment effect
-         + 0.4*L.prev  # covariate effect
-         +0*A0 # baseline treatment effect
-         )
+    return(-2 # intercept
+           -0*A.prev # treatment effect
+           + 0.4*L.prev  # covariate effect
+           +0*A0 # baseline treatment effect
+           )
 }
-compute.true(K=5,n=100000,B=1,seed=8,form.Y=outcome.formula,progress.bar=-1)
-# sim.data(n=10,K=3,seed=3,form.Y=outcome.formula)
+(truth.K5 <- compute.true(K=5,n=100000,B=1,seed=9,form.Y=outcome.formula,progress.bar=-1))
+# dt <- sim.data(n=200,K=3,seed=3,form.Y=outcome.formula)
 test <- runTMLE(K=5, # number of time points
                 n = 200, # sample size
                 misspecify.init = FALSE, # if TRUE, the initial outcome model is misspecified (see manuscript)
@@ -303,12 +312,59 @@ test <- runTMLE(K=5, # number of time points
 test
 #+END_SRC
 
-: psi0.A0 psi0.A1 
-: 0.58832 0.57308
-: 
-: Estimating psi with TMLE based on observed data:
-:    conTMLE.A0     se.A0   init.A0 se.init.A0 conTMLE.A1      se.A1   init.A1 se.init.A1
-: 1:  0.5276342 0.0617248 0.5752971 0.06294652  0.5207098 0.05638942 0.5568681 0.05656506
+#+RESULTS[<2020-11-15 10:34:55> 7d0b3f59aa6ebf81e96dd33aa6a1f594174542d8]:
+:    conTMLE.A0      se.A0   init.A0 conTMLE.A1      se.A1   init.A1
+: 1:  0.5558459 0.06170315 0.5948706  0.6235965 0.06963641 0.5980932
+
+*** repeat :noexport: 
+
+We repeat the simulations:
+
+#+BEGIN_SRC R  :results output   :exports both  :session *R* :cache yes  
+test.contmle <- runTMLE(K=5, # number of time points
+                        n = 200, # sample size
+                        misspecify.init = FALSE, # if TRUE, the initial outcome model is misspecified (see manuscript)
+                        seed=5, # control randomness of data simulation
+                        M = 100, # number of simulations
+                        no_cores=detectCores() - 1,
+                        form.Y=outcome.formula,progress.bar=-1)
+
+summary(object=test.contmle, oracle=TRUE,
+        true=truth.K5)
+#+END_SRC
+
+#+RESULTS[<2020-11-15 10:59:18> a3b6083f5d14ab63054ea9b45393e142ffb89dd4]:
+:           conTMLE      A0      A1    psi
+: 1            true 0.58913  0.5746 0.0145
+: 2            mean 0.59528  0.5640 0.0313
+: 3            bias 0.00615 -0.0106 0.0168
+: 4              se 0.06315  0.0605 0.0875
+: 5        coverage 0.94000  0.9500 0.9800
+: 6 oracle coverage 0.98000  0.9600 0.9900
+: 7             MSE 0.06616  0.0615 0.0944
+
+
+#+BEGIN_SRC R  :results output   :exports both  :session *R* :cache yes  
+test.ltmle <- runLTMLE(K=5,
+                       misspecify.init = FALSE,
+                       seed=5,
+                       M = 100,
+                       n = 1000,
+                       form.Y=outcome.formula)
+
+summary(object=test.ltmle,  
+        true=truth.K5)
+#+END_SRC
+
+#+RESULTS[<2020-11-15 11:03:28> 051da3ba5a864ada90ceac05693ffc9ca1658d65]:
+:      LTMLE      A0       A1     psi
+: 1     true 0.58913  0.57461 0.01452
+: 2     mean 0.59300  0.57362 0.01938
+: 3     bias 0.00387 -0.00099 0.00486
+: 4       se 0.03825  0.02974 0.04845
+: 5 coverage 0.98000  0.98000 0.98000
+: 6      MSE 0.03448  0.02905 0.04387
+
 
 *  Dependencies 
 
