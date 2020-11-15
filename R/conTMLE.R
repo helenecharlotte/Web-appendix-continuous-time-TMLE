@@ -80,16 +80,6 @@ conTMLE <- function(data,
         dt.covars[, haz.cumprod:=cumprod(1-hazard.A), by=covars]
         dt.covars[, est:=c(1,haz.cumprod[-.N])*hazard.A, by=covars]
 
-        if (FALSE) { #-- when Avar is binary, we could also had done as follows: 
-            if (Avar=="A") {
-                pred.A <- predict(glm("A ~ L0+A0+A.prev+L.prev+k", data=dt.tmp), newdata=dt.covars, type="response")
-                dt.covars[, est:=A*pred.A+(1-A)*(1-pred.A)]
-            } else {
-                pred.A <- predict(glm("A0 ~ L0", data=dt.tmp), newdata=dt.covars, type="response")
-                dt.covars[, est:=A0*pred.A+(1-A0)*(1-pred.A)]
-            }
-        }
-
         setnames(dt.covars, "est", paste0("fit.", Avar))
         return(dt.covars[, -c("a", "hazard.A", "haz.cumprod")])
         

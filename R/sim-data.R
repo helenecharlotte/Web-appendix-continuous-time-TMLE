@@ -1,7 +1,7 @@
 sim.data <- function(n, # sample size
                      K=1, # maximal length of followup
                      seed, # seed
-                     censoring=FALSE, # if FALSE data are uncensored
+                     censoring=TRUE, # if FALSE data are uncensored
                      intervention.A=NULL, # used to calculate the true parameter value
                      intervention.A0=NULL, # used to calculate the true parameter value 
                      form.dN.L=NULL, # how time of covariate monitoring depends on history through last value (Markov)
@@ -17,10 +17,10 @@ sim.data <- function(n, # sample size
     if (length(form.dN.A)==0) form.dN.A <- function(L0, dN.A.prev, L.prev, A.prev) -0.75-0.05*K-0.42*dN.A.prev+0.15*L0+0.3*(A.prev==2)+0.4*(A.prev==1)-0.25*L.prev
     if (length(form.C)==0) form.C <- function(L0, L.prev, A.prev, A0) -3.95+(K>40)*5-0.4*K^{2/3}-0.24*(K>2 & K<=4)-0.4*(K>4 & K<=9)-(K>9)*0.4*K^{1/5}+0.2*(K>25)*K^{1/4}+0.1*L0+0.2*(A0==1)+0.9*(A0==2)+2.15*L.prev
     if (length(form.L)==0) form.L <- function(L0, L.prev, A.prev, A0) 0.5-0.4*A0+0.15*L0-0.25*(A.prev==1)+0.4*L.prev
-    if (length(form.A0)==0) form.A0 <- function(L0) cbind(-0.1+0.25*L0)
-    if (length(form.A)==0) form.A <- function(L0, L.prev, A.prev, A0) cbind(-1+(1-A0)*0.6+(1-A.prev)*0.4+L.prev*0.6-0.15*(K>15)*L.prev)
+    if (length(form.A0)==0) form.A0 <- function(L0) (-0.1+0.25*L0)
+    if (length(form.A)==0) form.A <- function(L0, L.prev, A.prev, A0) (-1+(1-A0)*0.6+(1-A.prev)*0.4+L.prev*0.6-0.15*(K>15)*L.prev)
     if (length(form.Y)==0) {
-        form.Y <- function(L0, L.prev, A.prev, A0, dN.A.prev){-1.1- 0.33*K/3*(K>2 & K<=4)-0.25*K^{2/3}-0.25*(K>4 & K<=9)- (K>25 & K<45)*0.3*K^{1/5}- (K>75)*0.31+(K>85)*0.2- (K>25 & K<75)*0.5*K^{1/5}+0.6*(K>25)*K^{1/4} - 0.25*A.prev + 0.4*L.prev - 0.25*A0 + 0.35*L.prev*A0 + (K>75)*0.1*A0+(K>85)*0.01*A0}
+        form.Y <- function(L0, L.prev, A.prev, A0, dN.A.prev){-1.1- 0.33*K/3*(K>2 & K<=4)-0.25*K^{2/3}-0.25*(K>4 & K<=9)- (K>25 & K<45)*0.3*K^{1/5}- (K>75)*0.31+(K>85)*0.2-(K>25 & K<75)*0.5*K^{1/5}+0.6*(K>25)*K^{1/4} - 0.25*A.prev + 0.4*L.prev - 0.25*A0 + 0.35*L.prev*A0 + (K>75)*0.1*A0+(K>85)*0.01*A0}
     }
     if (length(seed)>0) {
         set.seed(seed)
@@ -28,9 +28,10 @@ sim.data <- function(n, # sample size
     
     rexpit <- function(x) rbinom(n=n, size=1, prob=plogis(x))
     rmulti <- function(x) {
+        if (!is.matrix(x)) x <- matrix(x, ncol=1)
         out <- rep(0, n)
         for (p in 1:ncol(x)) {
-            out <- p*rexpit(logit(x[,p]))*(out==0) + out 
+            out <- p*rexpit(x[,p])*(out==0) + out 
         }
         out[out==0] <- ncol(x)+1
         return(out-1)
@@ -38,13 +39,13 @@ sim.data <- function(n, # sample size
 
     L0 <- sample(1:6, n, replace=1000)/6
 
-    A0 <- rmulti(plogis(form.A0(L0)))
+    A0 <- rmulti(form.A0(L0))
     
     if (length(intervention.A)>0 & length(intervention.A0)==0) {
-        A0 <- rmulti(plogis(intervention.A(L0, 0, 0, A0)))        
+        A0 <- rmulti(intervention.A(L0, 0, 0, A0))
     }
     if (length(intervention.A0)>0){
-        A0 <- rmulti(plogis(intervention.A0(L0, A0)))        
+        A0 <- rmulti(intervention.A0(L0, A0))
     }
 
     A.prev <- A0
@@ -72,10 +73,11 @@ sim.data <- function(n, # sample size
 
         dN.A1 <- rexpit(form.dN.A(L0, dN.A.prev, L.prev, A.prev))
 
-        A1 <- rmulti(plogis(form.A(L0, L.prev, A.prev, A0)))
+        
+        A1 <- rmulti(form.A(L0, L.prev, A.prev, A0))
         
         if (length(intervention.A)>0){
-            A1 <- rmulti(plogis(intervention.A(L0, L.prev, A.prev, A1)))
+            A1 <- rmulti(intervention.A(L0, L.prev, A.prev, A1))
         }
         A1 <- dN.A1*A1 + (1-dN.A1)*A.prev
         
