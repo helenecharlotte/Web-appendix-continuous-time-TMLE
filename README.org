@@ -82,7 +82,7 @@ summary(object=table1.K5.ltmle,true=table1.K5.true)
 summary(object=table1.K5.conTMLE,true=table1.K5.true)
 #+END_SRC
 
-#+RESULTS[<2020-11-15 11:08:03> 0fefa8eb4beb77834ceea1f0d343917980d1b4bb]:
+
 #+begin_example
      LTMLE      A0       A1     psi
 1     true 0.55950  0.42445 0.13505
@@ -213,7 +213,7 @@ the monitoring times:
 print.long.format(sim.data(n=5,K=50,seed=14))       
 #+END_SRC
 
-#+RESULTS[<2020-11-15 10:44:14> efac44710d38b678d3ae6e3315f8add30a070e6a]:
+
 #+begin_example
     id  k        L0 A0 A C L Y dN.A dN.L
  1:  1 13 0.1666667  1 1 0 1 0    0    1
@@ -312,7 +312,6 @@ test <- runTMLE(K=5, # number of time points
 test
 #+END_SRC
 
-#+RESULTS[<2020-11-15 10:34:55> 7d0b3f59aa6ebf81e96dd33aa6a1f594174542d8]:
 :    conTMLE.A0      se.A0   init.A0 conTMLE.A1      se.A1   init.A1
 : 1:  0.5558459 0.06170315 0.5948706  0.6235965 0.06963641 0.5980932
 
@@ -356,7 +355,7 @@ summary(object=test.ltmle,
         true=truth.K5)
 #+END_SRC
 
-#+RESULTS[<2020-11-15 11:03:28> 051da3ba5a864ada90ceac05693ffc9ca1658d65]:
+
 :      LTMLE      A0       A1     psi
 : 1     true 0.58913  0.57461 0.01452
 : 2     mean 0.59300  0.57362 0.01938
