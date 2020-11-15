@@ -24,7 +24,7 @@ print.long.format <- function(dt) {
              !(tmp>=1 & count>1)][, -c("tmp", "count"), with=FALSE]
 }
 
-summary.watmle <- function(object,true,init=FALSE){
+summary.watmle <- function(object,true,init=FALSE, oracle=FALSE){
     x <- data.table(do.call("rbind",object))
     if (init){
         x <- x[,grep("init",names(x),value=TRUE),with=FALSE]
@@ -52,20 +52,37 @@ summary.watmle <- function(object,true,init=FALSE){
         cov.A0 <- cov.fun(est=est.A0,se=se.A0,true=true[["psi0.A0"]])
         cov.A1 <- cov.fun(est=est.A1,se=se.A1,true=true[["psi0.A1"]])
         cov.diff <- cov.fun(est=diff,se=sqrt(se.A1^2+se.A0^2),true=true.diff)
+        cov.oracle.A0 <- cov.fun(est=est.A0,se=sd(est.A0),true=true[["psi0.A0"]])
+        cov.oracle.A1 <- cov.fun(est=est.A1,se=sd(est.A1),true=true[["psi0.A1"]])
+        cov.oracle.diff <- cov.fun(est=diff,se=sd(diff),true=true.diff)
         se.A0 <- mean(se.A0)
         se.A1 <- mean(se.A1)
         se.diff <- mean(sqrt(se.A0^2+se.A1^2))
         mse.A0 <- mse(est.A0)
         mse.A1 <- mse(est.A1)
         mse.diff <- mse(diff)
-        out <- data.frame(matrix(c(true.A0=true[["psi0.A0"]],true.A1=true[["psi0.A1"]],true.diff=true.diff,
-                                   mean.A0=mean.A0,mean.A1=mean.A1,mean.diff=mean.A0-mean.A1,
-                                   bias.A0=bias.A0,bias.A1=bias.A1,bias.diff=bias.diff,
-                                   se.A0=se.A0,se.A1=se.A1,se.diff=se.diff,
-                                   cov.A0=cov.A0,cov.A1=cov.A1,cov.diff=cov.diff,
-                                   mse.A0=mse.A0,mse.A1=mse.A1,mse.diff=mse.diff),ncol=3,byrow=TRUE))
+        if (oracle) {
+            out <- data.frame(matrix(c(true.A0=true[["psi0.A0"]],true.A1=true[["psi0.A1"]],true.diff=true.diff,
+                                       mean.A0=mean.A0,mean.A1=mean.A1,mean.diff=mean.A0-mean.A1,
+                                       bias.A0=bias.A0,bias.A1=bias.A1,bias.diff=bias.diff,
+                                       se.A0=se.A0,se.A1=se.A1,se.diff=se.diff,
+                                       cov.A0=cov.A0,cov.A1=cov.A1,cov.diff=cov.diff,
+                                       cov.oracle.A0=cov.oracle.A0,cov.oracle.A1=cov.oracle.A1,cov.oracle.diff=cov.oracle.diff,
+                                       mse.A0=mse.A0,mse.A1=mse.A1,mse.diff=mse.diff),ncol=3,byrow=TRUE))
+        } else {
+            out <- data.frame(matrix(c(true.A0=true[["psi0.A0"]],true.A1=true[["psi0.A1"]],true.diff=true.diff,
+                                       mean.A0=mean.A0,mean.A1=mean.A1,mean.diff=mean.A0-mean.A1,
+                                       bias.A0=bias.A0,bias.A1=bias.A1,bias.diff=bias.diff,
+                                       se.A0=se.A0,se.A1=se.A1,se.diff=se.diff,
+                                       cov.A0=cov.A0,cov.A1=cov.A1,cov.diff=cov.diff,
+                                       mse.A0=mse.A0,mse.A1=mse.A1,mse.diff=mse.diff),ncol=3,byrow=TRUE))
+        }
         names(out) <- c("A0","A1","psi")
-        out <- cbind(Result=c("true","mean","bias","se","coverage","MSE"),out)
+        if (oracle) {
+            out <- cbind(Result=c("true","mean","bias","se","coverage", "oracle coverage","MSE"),out)
+        } else {
+            out <- cbind(Result=c("true","mean","bias","se","coverage","MSE"),out)
+        }
         if (init)
             setnames(out,"Result","Initial estimate")
         else
