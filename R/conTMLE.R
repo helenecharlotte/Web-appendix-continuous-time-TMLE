@@ -56,11 +56,13 @@ conTMLE <- function(data,
 
         A.melt[, a:=numextract(variable)]
         A.melt <- A.melt[, -"variable"]
+
         A.melt[, atrisk:=1*(get(Avar)>=a)]
         A.melt[, Y:=1*(get(Avar)==a)]
         A.melt[, a:=factor(a)]
         
         form <- paste0("Y~", paste0(covars, "*a", collapse="+"))
+        form <- paste0("Y~", "a+", paste0(covars, collapse="+"))
         fit.A <- glm(formula(form), data=A.melt[atrisk==1], family=binomial())
 
         dt.covars <- setDT(expand.grid(lapply(c(covars, Avar), function(var) {
@@ -77,6 +79,16 @@ conTMLE <- function(data,
         dt.covars <- dt.covars[order(L0, get(Avar))]
         dt.covars[, haz.cumprod:=cumprod(1-hazard.A), by=covars]
         dt.covars[, est:=c(1,haz.cumprod[-.N])*hazard.A, by=covars]
+
+        if (FALSE) { #-- when Avar is binary, we could also had done as follows: 
+            if (Avar=="A") {
+                pred.A <- predict(glm("A ~ L0+A0+A.prev+L.prev+k", data=dt.tmp), newdata=dt.covars, type="response")
+                dt.covars[, est:=A*pred.A+(1-A)*(1-pred.A)]
+            } else {
+                pred.A <- predict(glm("A0 ~ L0", data=dt.tmp), newdata=dt.covars, type="response")
+                dt.covars[, est:=A0*pred.A+(1-A0)*(1-pred.A)]
+            }
+        }
 
         setnames(dt.covars, "est", paste0("fit.", Avar))
         return(dt.covars[, -c("a", "hazard.A", "haz.cumprod")])
@@ -106,7 +118,7 @@ conTMLE <- function(data,
         ##     dt.long[is.na(get(i)), (i):=0]
 
         dt.long[, L.prev:=c(0, L[-.N]), by="id"]
-        dt.long[, A.prev:=c(0, A[-.N]), by="id"]
+        dt.long[, A.prev:=c(A0[1], A[-.N]), by="id"]
         
         dt.long[, dN.L.prev:=c(0, dN.L[-.N]), by="id"]
         dt.long[, dN.A.prev:=c(0, dN.A[-.N]), by="id"]
@@ -130,8 +142,20 @@ conTMLE <- function(data,
                      data=dt.long[keep==1])
 
         dt.long[dN.A==0, keep:=0]
+
+        #fit.A <- setDT(expand.grid(lapply(c("L0", "A0", "A.prev", "L.prev", "k", "A"), function(var) {
+        #    dt.long[, unique(.SD), .SDcols=var][[1]]
+        #})))
+        #names(fit.A) <- c("L0", "A0", "A.prev", "L.prev", "k", "A")
+       
         fit.A <- fit.density(dt.long, "A", c("L0", "A0", "L.prev", "A.prev", "k"), subset="keep")
 
+ 
+        # pred.A <- predict(glm("A ~ L0+A0+A.prev+L.prev+k", data=dt.long[keep==1]),
+        #                   newdata=fit.A, type="response")
+        # fit.A[, test.fit.A:=A*pred.A+(1-A)*(1-pred.A)]
+        
+        
         #summary(glm(A~L0+A0 + L.prev+A.prev, data=dt.long[keep==1], family=binomial()))
         
         if (length(intervention.A)>0) {            
@@ -354,9 +378,9 @@ conTMLE <- function(data,
                      (get(paste0("fit.A", k)))]
         }
 
-        if (verbose) print(paste0("Clever weight, ", "W", k+1, ", maximal value"))
-        if (verbose) print(save.weights.max[k+1] <- max(dt[, get(paste0("W", k+1))]))
-        if (verbose) print(save.weights.zeros[k+1] <- sum(dt[, 1*(get(paste0("W", k+1))==0)]))
+        #if (verbose) print(paste0("Clever weight, ", "W", k+1, ", maximal value"))
+        #if (verbose) print(save.weights.max[k+1] <- max(dt[, get(paste0("W", k+1))]))
+        #if (verbose) print(save.weights.zeros[k+1] <- sum(dt[, 1*(get(paste0("W", k+1))==0)]))
 
         if (truncate.weights) {
             weights.truncated[k] <- sum(dt[, abs(get((paste0("W", k+1))))>750])
@@ -377,7 +401,7 @@ conTMLE <- function(data,
 
     dt.Z.list <- lapply(1:(length(var.order)-1), function(k) {
 
-        if (verbose) print(k)
+        #if (verbose) print(k)
         
         k.var <- var.order[k]
         pa.k <- var.order[(k+1):length(var.order)]
@@ -417,7 +441,7 @@ conTMLE <- function(data,
             dt.Z.tmp <- unique(dt.Z.tmp)
         }
 
-        #-- initial estimators for densities
+        #-- initial estimators for densities1
 
         if (smooth.initial) {
             if (substr(k.var, 1, 1)=="Y") {
@@ -430,7 +454,7 @@ conTMLE <- function(data,
                 } else {
                     dt.Z.tmp[, `:=`(k=numextract(k.var),
                                     dN.A.prev=0,
-                                    A.prev=0,#get(paste0("A", numextract(k.var)-1)),
+                                    A.prev=get(paste0("A", numextract(k.var)-1)), #0,
                                     L.prev=0,
                                     A=get(paste0("A", numextract(k.var)-1)))]
                 }
@@ -661,7 +685,7 @@ conTMLE <- function(data,
         dt[, (eic.name):=Z-psi.hat+tmp.eic]
         dt[, tmp.eic:=NULL]
         
-        if (verbose) print(dt[, mean(get(eic.name))])
+        #if (verbose) print(dt[, mean(get(eic.name))])
     }
     
     #-------------------------------------------------------------------------------------------#
@@ -841,7 +865,7 @@ conTMLE <- function(data,
 
         dt <- copy(dt1)
 
-        if (verbose) print(paste0(mm, "->", mm+1))
+        if (verbose) print(paste0("Step ", mm, " -> ", mm+1))
         
         if (mm==1) {
             dt.Z.k1 <- copy(dt.Z.list[[1]])
@@ -853,7 +877,7 @@ conTMLE <- function(data,
 
             k.var <- var.order[k]
            
-            if (verbose) print(k.var)
+            #if (verbose) print(k.var)
 
             if (mm==1) {
                 tmp.kk <- int.fun(k.var, dt.Z.k1, copy(dt.Z.list[[k]]), iter=0, fit.tmle=NULL)
@@ -894,7 +918,7 @@ conTMLE <- function(data,
                                            by=pa.k), by=pa.k)
                 }
 
-                if (verbose) print(nrow(dt))
+                #if (verbose) print(nrow(dt))
                 if (substr(k.var, 1, 1)=="Y" & numextract(k.var)>1) {
                     dt[get(paste0("Y", numextract(k.var)-1))==1, (paste0("H.", k.var)):=0]
                 } else if (substr(k.var, 1, 1)!="Y" & numextract(k.var)>0) {
@@ -919,12 +943,14 @@ conTMLE <- function(data,
         } else {
             fit.list[[mm]] <- c(psi.hat=dt[, psi.hat][1], eps.hat=coef(fit.tmle),
                                 sd.eic=dt[, sqrt(mean(eic^2)/nrow(dt))])
+            if (verbose) print(paste0("eps.hat=", coef(fit.tmle)))
+            if (verbose) print(paste0("eic=", dt[, mean(eic)]))
             ## check convergence
             if (mm==1) {
                 if (abs(dt[, mean(eic)])<=dt[, sqrt(mean(eic^2)/nrow(dt))]/(sqrt(nrow(dt))*log(nrow(dt)))) {
                     break
                 }
-            }else{
+            } else{
                 if (abs(fit.list[[mm]][["psi.hat"]]-fit.list[[mm-1]][["psi.hat"]])<eps ||
                     abs(dt[, mean(eic)])<=dt[, sqrt(mean(eic^2)/nrow(dt))]/(sqrt(nrow(dt))*log(nrow(dt)))) {
                     break
@@ -943,12 +969,12 @@ conTMLE <- function(data,
     #-------------------------------------------------------------------------------------------#
     ## return
     #-------------------------------------------------------------------------------------------#
-    if (verbose)print(length(fit.list))
+    #if (verbose)print(length(fit.list))
     init <- fit.list[[1]]
-    init <- init[c(1,3)]
+    init <- init[c(1)]
     out <- fit.list[[length(fit.list)]]
     out <- out[c(1,3)]
-    names(init) <- c("init","se.init")
+    names(init) <- c("init")
     names(out) <- c("conTMLE","se")
     return(c(out,init))
 }
