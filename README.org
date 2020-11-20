@@ -23,11 +23,13 @@ We also describe the simulation scenario in terms of the actual R-code
 and indicate how one can change the code to generate different
 scenarios.
 
+[TOC]
+
 
 * Running the code
 
 The following code uses one computing core to calculate the estimates
-of conTMLE and LTMLE using a single simulated dataset. The code that
+of conTMLE (and LTMLE) using a single simulated dataset. The code that
 produces the empirical results of Table 1 and Table 2 of the
 manuscript are shown longer down.
 
@@ -49,6 +51,64 @@ K5.conTMLE
 :    conTMLE.A0      se.A0   init.A0 se.init.A0 conTMLE.A1      se.A1   init.A1 se.init.A1
 : 1:  0.5118338 0.02427116 0.5065769 0.02427193  0.4152895 0.02232546 0.4043225 0.02233339
 
+With the =verbose=TRUE= option, we can see the targeting steps: 
+
+#+ATTR_LATEX: :options otherkeywords={}, deletekeywords={}
+#+BEGIN_SRC R  :results output :exports both  :session *R* :cache yes  
+# NOTE: you need to set the working directory 
+source("./examples/load.R")
+K5.conTMLE <- runTMLE(K=5, # number of time points
+                      n = 1000, # sample size
+                      misspecify.init = FALSE, # if TRUE, the initial outcome model is misspecified (see manuscript)
+                      seed=23, # control randomness of data simulation
+                      M = 1, # number of simulations
+                      verbose = TRUE, # get messages when running the code 
+                      no_cores=1) # number of computing cores   
+#+END_SRC
+
+#+RESULTS[<2020-11-20 11:50:20> 08b7254dfa94b280d58c0a96a536c51bc862bb2c]:
+#+begin_example
+
+Estimating psi with TMLE based on observed data:
+
+[1] "40.7% followed regime"
+[1] "Targeting step 1 -> 2"
+[1] "eps.hat=-0.00027863900464767"
+[1] "eic=-0.000993720127214605"
+[1] "Targeting step 2 -> 3"
+[1] "eps.hat=-0.000139387953486727"
+[1] "eic=-0.000925263680801293"
+[1] "43.9% followed regime"
+[1] "Targeting step 1 -> 2"
+[1] "eps.hat=0.0213511784663721"
+[1] "eic=0.00996849807589143"
+[1] "Targeting step 2 -> 3"
+[1] "eps.hat=0.0109564875668656"
+[1] "eic=0.00483497091785892"
+[1] "Targeting step 3 -> 4"
+[1] "eps.hat=0.00564918208232945"
+[1] "eic=0.00219353021543659"
+[1] "Targeting step 4 -> 5"
+[1] "eps.hat=0.00291977466491907"
+[1] "eic=0.000829773273472266"
+[1] "Targeting step 5 -> 6"
+[1] "eps.hat=0.00151095520925359"
+[1] "eic=0.000124438857138074"
+[1] "Targeting step 6 -> 7"
+[1] "eps.hat=0.000782404708210254"
+[1] "eic=-0.000240691497246047"
+[1] "Targeting step 7 -> 8"
+[1] "eps.hat=0.000405279644162037"
+[1] "eic=-0.000429797508755549"
+[1] "Targeting step 8 -> 9"
+[1] "eps.hat=0.000209967640814827"
+[1] "eic=-0.00052776200486349"
+#+end_example
+
+
+
+Our function =runLTMLE= applies =LTMLE= to data simulated from the
+same data-generating distribution. 
 
 #+BEGIN_SRC R  :results output :exports both  :session *R* :cache yes  
 # NOTE: you need to set the working directory 
@@ -111,7 +171,7 @@ table1.K30.true <- readRDS(file="./examples/table1-K30-true.rds")
 table1.K30.ltmle <- readRDS(file="./examples/table1-K30-ltmle.rds")
 table1.K30.conTMLE <- readRDS(file="./examples/table1-K30-conTMLE.rds")
 summary(object=table1.K30.ltmle,true=table1.K30.true) 
-summary(object=table1.K30.conTMLE,true=table1.K30.true)  
+summary(object=table1.K30.conTMLE,true=table1.K30.true)   
 #+END_SRC
 
 #+begin_example
@@ -141,7 +201,7 @@ source("./examples/load.R")
 table2.K30.true <- readRDS(file="./examples/table1-K30-true.rds")
 table2.K30.misspecified <- readRDS(file="./examples/table2-K30-conTMLE.rds")
 summary(object=table2.K30.misspecified,true=table2.K30.true,init=TRUE)
-summary(object=table2.K30.misspecified,true=table2.K30.true)  
+summary(object=table2.K30.misspecified,true=table2.K30.true)    
 #+END_SRC
 
 #+begin_example
@@ -157,6 +217,7 @@ summary(object=table2.K30.misspecified,true=table2.K30.true)
 5 coverage  0.9580000 0.945000  0.953000
 6      MSE  0.0254086 0.024506  0.034669
 #+end_example
+
 
 
 * The simulation scenario
