@@ -16,16 +16,14 @@ empirical studies presented here. Stay tuned!
 
 Below we show how to load and use the code.
 
-#+begin_important  
-*Important:* For simulations of many time points, i.e., with K=100,
-the current implementation requires a computer with a rather large
-memory.
-#+end_important
-
 
 We also describe the simulation scenario in terms of the actual R-code
 and indicate how one can change the code to generate different
 scenarios.
+
+*Important:* For simulations of many time points, i.e., with K=100,
+the current implementation requires a computer with a rather large
+memory.
 
 * Contents
 
