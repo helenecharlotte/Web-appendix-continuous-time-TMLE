@@ -32,6 +32,10 @@ scenarios.
 
 - [[https://github.com/helenecharlotte/Web-appendix-continuous-time-TMLE/#the-simulation-scenario][The simulation scenario]]
 
+ + [[https://github.com/helenecharlotte/Web-appendix-continuous-time-TMLE#overall-description][Overall description]]
+ + [[https://github.com/helenecharlotte/Web-appendix-continuous-time-TMLE#current-setting][Current setting of Tables 1 and 2]]
+ + [[https://github.com/helenecharlotte/Web-appendix-continuous-time-TMLE#changing-the-current-setting][Changing the current setting]]
+
 
 
 * Running the code
