@@ -21,9 +21,8 @@ runTMLE <- function(K=10,
                     M = 5,                    
                     no_cores=1,
                     max.iter=25,  # maximal number of iterations
-                    eps = 0.000001,#0.0001, # extra convergence criterion
+                    eps = 0.0001, # convergence criterion
                     progress.bar=3, # show progress
-                    verbose=FALSE, # show output from updating steps
                     ... # arguments passed to sim.data
                     ){ 
     message("\nEstimating psi with TMLE based on observed data:\n")
@@ -37,12 +36,12 @@ runTMLE <- function(K=10,
         if (progress.bar>0) { setTxtProgressBar(pb, m)}
         # generate data
         dt <- sim.data(n,seed=seed+m,censoring=TRUE,K=K,...)
-        # estimate 
+        # estimate
         est.psi.A0 <- conTMLE(dt, 
                               targeting=2, 
                               smooth.initial=TRUE,
                               max.iter=max.iter,
-                              eps=eps, verbose=verbose,
+                              eps=eps, dropin=FALSE,
                               intervention.A0=function(L0, A0) logit(1*(A0==0)),
                               intervention.A=function(L0, A0, L.prev, A.prev, A) logit(1*(A==0)),
                               misspecify.init=misspecify.init)
@@ -50,11 +49,11 @@ runTMLE <- function(K=10,
                               targeting=2, 
                               smooth.initial=TRUE,
                               max.iter=max.iter,
-                              eps=eps, verbose=verbose,
+                              eps=eps, dropin=FALSE,
                               intervention.A0=function(L0, A0) logit(1*(A0==1)),
                               intervention.A=function(L0, A0, L.prev, A.prev, A) logit(1*(A==1)),
                               misspecify.init=misspecify.init)
-        names(est.psi.A0) <- paste0(names(est.psi.A1),".A0")
+        names(est.psi.A0) <- paste0(names(est.psi.A0),".A0")
         names(est.psi.A1) <- paste0(names(est.psi.A1),".A1")
         return(c(est.psi.A0, est.psi.A1))
     }

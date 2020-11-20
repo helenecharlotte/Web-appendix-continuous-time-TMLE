@@ -11,7 +11,9 @@ conTMLE <- function(data,
                     max.iter=25,
                     eps=0.0001,
                     verbose=FALSE, 
-                    smooth.initial=TRUE, 
+                    smooth.initial=TRUE,
+                    dropin=FALSE,
+                    condition.k=FALSE,
                     misspecify.init=FALSE) {
     dt <- copy(data)
     K <- max(numextract(names(dt)[grep("Y", substr(names(dt), 1, 1))]))-1
@@ -56,13 +58,11 @@ conTMLE <- function(data,
 
         A.melt[, a:=numextract(variable)]
         A.melt <- A.melt[, -"variable"]
-
         A.melt[, atrisk:=1*(get(Avar)>=a)]
         A.melt[, Y:=1*(get(Avar)==a)]
         A.melt[, a:=factor(a)]
         
         form <- paste0("Y~", paste0(covars, "*a", collapse="+"))
-        form <- paste0("Y~", "a+", paste0(covars, collapse="+"))
         fit.A <- glm(formula(form), data=A.melt[atrisk==1], family=binomial())
 
         dt.covars <- setDT(expand.grid(lapply(c(covars, Avar), function(var) {
@@ -104,11 +104,12 @@ conTMLE <- function(data,
 
         dt.long[, (names(dt.long)):=na.locf(.SD, na.rm=FALSE), by=id, .SDcols=names(dt.long)]
 
-        ## for (i in names(dt.long))
-        ##     dt.long[is.na(get(i)), (i):=0]
-
         dt.long[, L.prev:=c(0, L[-.N]), by="id"]
-        dt.long[, A.prev:=c(A0[1], A[-.N]), by="id"]
+        if (dropin) {
+            dt.long[, A.prev:=c(0, A[-.N]), by="id"]
+        } else {
+            dt.long[, A.prev:=c(A0[1], A[-.N]), by="id"]
+        }
         
         dt.long[, dN.L.prev:=c(0, dN.L[-.N]), by="id"]
         dt.long[, dN.A.prev:=c(0, dN.A[-.N]), by="id"]
@@ -128,25 +129,18 @@ conTMLE <- function(data,
                         data=dt.long[keep==1])
         fit.L <- glm(L ~ L0 + L.prev + A.prev + A0, family=binomial(),
                      data=dt.long[keep==1 & dN.L==1])
-        fit.C <- glm(C ~ L0 + factor(A0) + L.prev + factor(A.prev), family=binomial(),
+        fit.C <- glm(C ~ L0 + A0 + L.prev + A.prev, family=binomial(),
                      data=dt.long[keep==1])
 
         dt.long[dN.A==0, keep:=0]
 
-        #fit.A <- setDT(expand.grid(lapply(c("L0", "A0", "A.prev", "L.prev", "k", "A"), function(var) {
-        #    dt.long[, unique(.SD), .SDcols=var][[1]]
-        #})))
-        #names(fit.A) <- c("L0", "A0", "A.prev", "L.prev", "k", "A")
-       
-        fit.A <- fit.density(dt.long, "A", c("L0", "A0", "L.prev", "A.prev", "k"), subset="keep")
-
- 
-        # pred.A <- predict(glm("A ~ L0+A0+A.prev+L.prev+k", data=dt.long[keep==1]),
-        #                   newdata=fit.A, type="response")
-        # fit.A[, test.fit.A:=A*pred.A+(1-A)*(1-pred.A)]
-        
-        
-        #summary(glm(A~L0+A0 + L.prev+A.prev, data=dt.long[keep==1], family=binomial()))
+        #-- estimates of treatment probability distribution is stored in a matrix
+        #-- that tells us the probability of A=a given covariates;
+        if (K>10 | condition.k) {
+            fit.A <- fit.density(dt.long, "A", c("L0", "A0", "L.prev", "A.prev", "k"), subset="keep")
+        } else {
+            fit.A <- fit.density(dt.long, "A", c("L0", "A0", "L.prev", "A.prev"), subset="keep")
+        }
         
         if (length(intervention.A)>0) {            
             fit.A[, int.A:=plogis(intervention.A(L0, A0, L.prev, A.prev, A))]
@@ -160,12 +154,13 @@ conTMLE <- function(data,
         } else {
             fit.A0[, int.A0:=plogis(intervention.A0(L0, A0))]
         }
-
+        
         dt.long[, keep:=NULL]
     }
-    
+
     #-------------------------------------------------------------------------------------------#
-    ## separate models to estimate densities
+    ## separate models to estimate densities (ONLY for comparison in discrete time)
+    ## (not so relevant; just wanted the option)
     #-------------------------------------------------------------------------------------------#
 
     if (!smooth.initial) {
@@ -368,13 +363,12 @@ conTMLE <- function(data,
                      (get(paste0("fit.A", k)))]
         }
 
-        #if (verbose) print(paste0("Clever weight, ", "W", k+1, ", maximal value"))
-        #if (verbose) print(save.weights.max[k+1] <- max(dt[, get(paste0("W", k+1))]))
-        #if (verbose) print(save.weights.zeros[k+1] <- sum(dt[, 1*(get(paste0("W", k+1))==0)]))
+        save.weights.max[k+1] <- max(dt[, get(paste0("W", k+1))])
+        save.weights.zeros[k+1] <- sum(dt[, 1*(get(paste0("W", k+1))==0)])
 
         if (truncate.weights) {
             weights.truncated[k] <- sum(dt[, abs(get((paste0("W", k+1))))>750])
-            dt[abs(get((paste0("W", k+1))))>750, (paste0("W", k+1)):=100]
+            dt[abs(get((paste0("W", k+1))))>750, (paste0("W", k+1)):=750]
         }
 
         if (smooth.initial) {
@@ -384,14 +378,18 @@ conTMLE <- function(data,
 
     }
 
-       
+    if (save.weights.max[K+1]>250) warning("large weights; beware of positivity issues")
+    if ((save.weights.zeros[K+1])/nrow(dt)>0.85) {
+        warning(paste0("not much support for regime A=",
+                       fit.A0[int.A0==1, A0[1]], " (", round((1-(save.weights.zeros[K+1])/nrow(dt))*100,1), "%)",
+                       "; beware of positivity issues"))
+    } else if (verbose) print(paste0(round((1-(save.weights.zeros[K+1])/nrow(dt))*100,1), "% followed regime"))
+    
     #-------------------------------------------------------------------------------------------#
     ## matrices for computing clever covariates 
     #-------------------------------------------------------------------------------------------#
 
     dt.Z.list <- lapply(1:(length(var.order)-1), function(k) {
-
-        #if (verbose) print(k)
         
         k.var <- var.order[k]
         pa.k <- var.order[(k+1):length(var.order)]
@@ -431,7 +429,7 @@ conTMLE <- function(data,
             dt.Z.tmp <- unique(dt.Z.tmp)
         }
 
-        #-- initial estimators for densities1
+        #-- initial estimators for densities
 
         if (smooth.initial) {
             if (substr(k.var, 1, 1)=="Y") {
@@ -442,11 +440,19 @@ conTMLE <- function(data,
                                     L.prev=get(paste0("L", numextract(k.var)-1)),
                                     A=get(paste0("A", numextract(k.var)-1)))]
                 } else {
-                    dt.Z.tmp[, `:=`(k=numextract(k.var),
-                                    dN.A.prev=0,
-                                    A.prev=get(paste0("A", numextract(k.var)-1)), #0,
-                                    L.prev=0,
-                                    A=get(paste0("A", numextract(k.var)-1)))]
+                    if (dropin) {
+                        dt.Z.tmp[, `:=`(k=numextract(k.var),
+                                        dN.A.prev=0,
+                                        A.prev=0, 
+                                        L.prev=0,
+                                        A=get(paste0("A", numextract(k.var)-1)))]
+                    } else {
+                        dt.Z.tmp[, `:=`(k=numextract(k.var),
+                                        dN.A.prev=0,
+                                        A.prev=get(paste0("A", numextract(k.var)-1)), 
+                                        L.prev=0,
+                                        A=get(paste0("A", numextract(k.var)-1)))]
+                    }
                 }
                 dt.Z.tmp[, (paste0("pred.", k.var)):=predict(fit.Y, newdata=dt.Z.tmp, type="response")]
             } else if (substr(k.var, 1, 1)=="A") {
@@ -490,7 +496,7 @@ conTMLE <- function(data,
                                     A.prev=get(paste0("A", numextract(k.var)-1)),
                                     dN.A.prev=0)]
                 }
-                    dt.Z.tmp[, (paste0("pred.", k.var)):=predict(fit.dN.A, newdata=dt.Z.tmp, type="response")]
+                dt.Z.tmp[, (paste0("pred.", k.var)):=predict(fit.dN.A, newdata=dt.Z.tmp, type="response")]
                 if (length(intervention.dN.A)>0) {
                     if (numextract(k.var)>1) {
                         dt.Z.tmp[, (paste0("pred.", k.var)):=
@@ -524,7 +530,7 @@ conTMLE <- function(data,
                                     A.prev=get(paste0("A", numextract(k.var)-1)), 
                                     dN.L.prev=0)]
                 }
-                    dt.Z.tmp[, (paste0("pred.", k.var)):=predict(fit.L, newdata=dt.Z.tmp, type="response")]
+                dt.Z.tmp[, (paste0("pred.", k.var)):=predict(fit.L, newdata=dt.Z.tmp, type="response")]
             } else if (substr(k.var, 1, 4)=="dN.L") {
                 if (numextract(k.var)>1) {
                     dt.Z.tmp[, `:=`(k=numextract(k.var), 
@@ -537,7 +543,7 @@ conTMLE <- function(data,
                                     A.prev=get(paste0("A", numextract(k.var)-1)), 
                                     dN.L.prev=0)]
                 }
-                    dt.Z.tmp[, (paste0("pred.", k.var)):=predict(fit.dN.L, newdata=dt.Z.tmp, type="response")]
+                dt.Z.tmp[, (paste0("pred.", k.var)):=predict(fit.dN.L, newdata=dt.Z.tmp, type="response")]
             }
         } else { # not smooth initial
         
@@ -675,7 +681,6 @@ conTMLE <- function(data,
         dt[, (eic.name):=Z-psi.hat+tmp.eic]
         dt[, tmp.eic:=NULL]
         
-        #if (verbose) print(dt[, mean(get(eic.name))])
     }
     
     #-------------------------------------------------------------------------------------------#
@@ -708,29 +713,15 @@ conTMLE <- function(data,
         #--- merge predicted densities:
 
         if (k.var!=paste0("Y", K+1) | (length(fit.tmle)>0 & k.var==paste0("Y", K+1))) {
-            # FIXME: I added the common parents + allow.cartesian
             if (!(substr(k.var, 1, 1) %in% c("L") & targeting==2 & length(fit.tmle)>0)) {
-                BY <- pa.k[pa.k %in% names(dt.Z.k) & pa.k %in% names(dt.Z.k1)]
+                BY <- pa.k[#pa.k %in% names(dt.Z.k) &
+                    pa.k %in% names(dt.Z.k1)]
                 dt.Z.k1 <- merge(dt.Z.k, dt.Z.k1[, -grep("pred", names(dt.Z.k1)), with=FALSE],
                                  by=BY, allow.cartesian=TRUE)
             }
         }
 
         pa.k <- pa.k[pa.k != k.var]
-
-        #--- FIXME: only those compatible (i.e., e.g., dN.Ak=0 => Ak=Ak-1)
-
-        if (FALSE) {
-            if (substr(k.var, 1, 1) %in% c("L", "A") & numextract(k.var)>0) {
-                k.var.dN <- paste0("dN.", k.var)
-                k.var.1 <- paste0(substr(k.var, 1, 1), numextract(k.var)-1)
-                if (numextract(k.var)>1) {
-                    dt.Z.k1 <- dt.Z.k1[get(k.var)==get(k.var.1) | get(k.var.dN)==1]
-                    #dt.Z.k1[, (k.var):=get(k.var.dN)*get(k.var)+
-                    #              (1-get(var.order[k+1]))*get(k.var.1)]
-                } 
-            }
-        }
 
         #--- integrate out / collect clever covariates: 
         
@@ -746,7 +737,8 @@ conTMLE <- function(data,
 
             #--- collect for targeting:
 
-            if ((substr(k.var, 1, 1) %in% c("L") & targeting!=2) | substr(k.var, 1, 4) %in% c("dN.L", "dN.A") |
+            if ((substr(k.var, 1, 1) %in% c("L") & targeting!=2) |
+                substr(k.var, 1, 4) %in% c("dN.L", "dN.A") |
                 ((length(intervention.A)==0) & substr(k.var, 1, 1) %in% c("A") & numextract(k.var)>0)) {
                 dt.Z.k2 <- dcast(dt.Z.k1,
                                  formula(paste0(paste0(pa.k, collapse="+"),
@@ -777,10 +769,9 @@ conTMLE <- function(data,
             if ((length(intervention.A)==0) & substr(k.var, 1, 1) %in% c("A") & numextract(k.var)>0) {
                 dt.Z.k2[get(paste0("dN.", k.var))==0, (paste0("H.", k.var)):=0]
             }
-        }      
-
-
-         #--- integrate out L:
+        }
+        
+        #--- integrate out L:
         
         if (substr(k.var, 1, 1) %in% c("L") & numextract(k.var)>0) {
             if (length(fit.tmle)==0 | targeting!=2) {
@@ -798,12 +789,8 @@ conTMLE <- function(data,
         #--- integrate out A:
         
         if (substr(k.var, 1, 1) %in% c("A") & numextract(k.var)>0) {
-            # FIXME: Here changed since no longer integrating out binary
+            # Note: We integrate out categorical A (does not have to be binary)
             if (length(intervention.A)==0) {
-                ## dt.Z.k1[, Z:=sum(Z*(get(paste0("dN.", k.var))*(
-                ##     get(paste0("pred.", k.var))*get(k.var)+
-                ##     (1-get(paste0("pred.", k.var)))*(1-get(k.var)))+(1-get(paste0("dN.", k.var))))),
-                ##     by=pa.k]
                 dt.Z.k1[, Z:=sum(Z*(get(paste0("dN.", k.var))*(
                     get(paste0("pred.", k.var)))+(1-get(paste0("dN.", k.var))))),
                     by=pa.k]
@@ -849,13 +836,14 @@ conTMLE <- function(data,
 
     dt.Z.k.list2 <- list()
     fit.list <- list()
-    ## HELY:???
+
     dt1 <- copy(dt)
+    
     for (mm in 1:max.iter) {
 
         dt <- copy(dt1)
 
-        if (verbose) print(paste0("Step ", mm, " -> ", mm+1))
+        if (verbose) print(paste0("Targeting step ", mm, " -> ", mm+1))
         
         if (mm==1) {
             dt.Z.k1 <- copy(dt.Z.list[[1]])
@@ -866,8 +854,6 @@ conTMLE <- function(data,
         for (k in 1:(length(var.order)-1)) {
 
             k.var <- var.order[k]
-           
-            #if (verbose) print(k.var)
 
             if (mm==1) {
                 tmp.kk <- int.fun(k.var, dt.Z.k1, copy(dt.Z.list[[k]]), iter=0, fit.tmle=NULL)
@@ -878,6 +864,7 @@ conTMLE <- function(data,
             dt.Z.k1 <- tmp.kk[[1]]
             dt.Z.k.list2[[k]] <- tmp.kk[[2]]
 
+            ###--- Note: 
             ## need dt.Z.k.list2 for targeting: to be merged on dt
             ## also need this one for updating afterwards, since it has the predicted/updated densities
         
@@ -908,14 +895,11 @@ conTMLE <- function(data,
                                            by=pa.k), by=pa.k)
                 }
 
-                #if (verbose) print(nrow(dt))
                 if (substr(k.var, 1, 1)=="Y" & numextract(k.var)>1) {
                     dt[get(paste0("Y", numextract(k.var)-1))==1, (paste0("H.", k.var)):=0]
                 } else if (substr(k.var, 1, 1)!="Y" & numextract(k.var)>0) {
                     dt[get(paste0("Y", numextract(k.var)))==1, (paste0("H.", k.var)):=0]
-                } # HELY! else if (!(substr(k.var, 1, 1)%in%c("Y", "A") & length(intervention.A)>0) & numextract(k.var)>0) {
-                  #  dt[get(paste0("Y", numextract(k.var)))==1, (paste0("H.", k.var)):=0]
-                #}
+                } 
             }
         }
 
@@ -935,12 +919,12 @@ conTMLE <- function(data,
                                 sd.eic=dt[, sqrt(mean(eic^2)/nrow(dt))])
             if (verbose) print(paste0("eps.hat=", coef(fit.tmle)))
             if (verbose) print(paste0("eic=", dt[, mean(eic)]))
-            ## check convergence
+            ## check convergence (note that we have added an extra criterion)
             if (mm==1) {
                 if (abs(dt[, mean(eic)])<=dt[, sqrt(mean(eic^2)/nrow(dt))]/(sqrt(nrow(dt))*log(nrow(dt)))) {
                     break
                 }
-            } else{
+            }else{
                 if (abs(fit.list[[mm]][["psi.hat"]]-fit.list[[mm-1]][["psi.hat"]])<eps ||
                     abs(dt[, mean(eic)])<=dt[, sqrt(mean(eic^2)/nrow(dt))]/(sqrt(nrow(dt))*log(nrow(dt)))) {
                     break
@@ -959,12 +943,12 @@ conTMLE <- function(data,
     #-------------------------------------------------------------------------------------------#
     ## return
     #-------------------------------------------------------------------------------------------#
-    #if (verbose)print(length(fit.list))
+
     init <- fit.list[[1]]
-    init <- init[c(1)]
+    init <- init[c(1,3)]
     out <- fit.list[[length(fit.list)]]
     out <- out[c(1,3)]
-    names(init) <- c("init")
+    names(init) <- c("init", "se.init")
     names(out) <- c("conTMLE","se")
     return(c(out,init))
 }
