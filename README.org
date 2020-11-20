@@ -23,8 +23,14 @@ We also describe the simulation scenario in terms of the actual R-code
 and indicate how one can change the code to generate different
 scenarios.
 
-- [[https://github.com/helenecharlotte/Web-appendix-continuous-time-TMLE/tree/main#making-of-tables-1-and-2][Making of tables 1 and 2]]
+- [[https://github.com/helenecharlotte/Web-appendix-continuous-time-TMLE/#running-the-code][Running the code]]
 
+- [[https://github.com/helenecharlotte/Web-appendix-continuous-time-TMLE/tree/main#making-of-tables-1-and-2][Making of Tables 1 and 2]]
+
+ + [[https://github.com/helenecharlotte/Web-appendix-continuous-time-TMLE/#table-1][Table 1]]
+ + [[https://github.com/helenecharlotte/Web-appendix-continuous-time-TMLE/#table-2][Table 2]]
+
+- [[https://github.com/helenecharlotte/Web-appendix-continuous-time-TMLE/#the-simulation-scenario][The simulation scenario]]
 
 
 
