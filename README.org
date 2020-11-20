@@ -23,8 +23,6 @@ We also describe the simulation scenario in terms of the actual R-code
 and indicate how one can change the code to generate different
 scenarios.
 
-[Making of tables 1 and 2](https://github.com/helenecharlotte/Web-appendix-continuous-time-TMLE/tree/main#making-of-tables-1-and-2 "hej")
-
 
 * Running the code
 
@@ -66,7 +64,6 @@ K5.conTMLE <- runTMLE(K=5, # number of time points
                       no_cores=1) # number of computing cores   
 #+END_SRC
 
-#+RESULTS[<2020-11-20 11:50:20> 08b7254dfa94b280d58c0a96a536c51bc862bb2c]:
 #+begin_example
 
 Estimating psi with TMLE based on observed data:
@@ -489,3 +486,8 @@ Publish::org(data.table(Package=pp,Version=sapply(pp,function(x) as.character(pa
 | doParallel |  1.0.15 |
 :end:
 
+
+
+* HEADER :noexport:
+
+#+OPTIONS: toc:t
