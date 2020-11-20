@@ -25,7 +25,7 @@ scenarios.
 the current implementation requires a computer with a rather large
 memory.
 
-** Contents
+* Overview
 
 - [[https://github.com/helenecharlotte/Web-appendix-continuous-time-TMLE/#running-the-code][Running the code]]
 
