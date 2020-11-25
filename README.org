@@ -61,13 +61,14 @@ K5.conTMLE <- runTMLE(K=5, # number of time points
                       seed=23, # control randomness of data simulation
                       M = 1, # number of simulations
                       no_cores=1) # number of computing cores
-K5.conTMLE  
+K5.conTMLE      
 #+END_SRC
 
 : 
 : Estimating psi with TMLE based on observed data:
-:    conTMLE.A0      se.A0   init.A0 se.init.A0 conTMLE.A1      se.A1   init.A1 se.init.A1
-: 1:  0.5118338 0.02427116 0.5065769 0.02427193  0.4152895 0.02232546 0.4043225 0.02233339
+:    conTMLE.A0      se.A0  init.A0 conTMLE.A1      se.A1   init.A1
+: 1:  0.5122824 0.02363591 0.512352  0.4153924 0.02281688 0.4048561
+
 
 
 
@@ -601,7 +602,7 @@ test1 <- runTMLE(K=5, # number of time points
                  M = 1, # number of simulations
                  no_cores=1,
                  form.A=treatment.formula,progress.bar=-1)
-test1    
+test1     
 #+END_SRC
 
 #+begin_example
@@ -613,9 +614,10 @@ Estimating psi with TMLE based on observed data:
 Warning message:
 In conTMLE(dt, targeting = 2, smooth.initial = TRUE, max.iter = max.iter,  :
   not much support for regime A=0 (13%); beware of positivity issues
-   conTMLE.A0      se.A0   init.A0 se.init.A0 conTMLE.A1      se.A1   init.A1 se.init.A1
-1:  0.5318134 0.03700563 0.5424941 0.03684714  0.2903036 0.05483801 0.3204847 0.05502519
+   conTMLE.A0     se.A0   init.A0 conTMLE.A1      se.A1   init.A1
+1:  0.5294796 0.0369986 0.5642535   0.289432 0.05778478 0.3153624
 #+end_example
+
 
 
 The positivity violations result in considerably inaccurate
@@ -659,7 +661,7 @@ test2 <- runTMLE(K=5, # number of time points
                 seed=3, # control randomness of data simulation
                 M = 1, # number of simulations
                 no_cores=1,
-                form.Y=outcome.formula,progress.bar=-1)
+                form.Y=outcome.formula,progress.bar=-1) 
 test2 
 #+END_SRC
 
@@ -667,9 +669,8 @@ test2
 : 0.58832 0.57308
 : 
 : Estimating psi with TMLE based on observed data:
-: 
-:    conTMLE.A0      se.A0   init.A0 se.init.A0 conTMLE.A1      se.A1   init.A1 se.init.A1
-: 1:   0.571716 0.05475289 0.5749211 0.05476379   0.580153 0.05175538 0.5577254 0.05184291
+:    conTMLE.A0      se.A0   init.A0 conTMLE.A1      se.A1  init.A1
+: 1:  0.5768492 0.05338095 0.5877601  0.5846994 0.05433202 0.555641
 
 
 

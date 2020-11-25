@@ -945,10 +945,10 @@ conTMLE <- function(data,
     #-------------------------------------------------------------------------------------------#
 
     init <- fit.list[[1]]
-    init <- init[c(1,3)]
+    init <- init[c(1)]
     out <- fit.list[[length(fit.list)]]
     out <- out[c(1,3)]
-    names(init) <- c("init", "se.init")
+    names(init) <- c("init")
     names(out) <- c("conTMLE","se")
     return(c(out,init))
 }
