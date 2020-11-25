@@ -34,6 +34,8 @@ memory.
  + [[https://github.com/helenecharlotte/Web-appendix-continuous-time-TMLE/#table-1][Table 1]]
  + [[https://github.com/helenecharlotte/Web-appendix-continuous-time-TMLE/#table-2][Table 2]]
 
+- [[https://github.com/helenecharlotte/Web-appendix-continuous-time-TMLE#changing-the-sample-size-n][Changing the sample size (n)]] 
+
 - [[https://github.com/helenecharlotte/Web-appendix-continuous-time-TMLE/#the-simulation-scenario][The simulation scenario]]
 
  + [[https://github.com/helenecharlotte/Web-appendix-continuous-time-TMLE#overall-description][Overall description]]
@@ -224,7 +226,6 @@ summary(object=table2.K50.misspecified,true=table2.K50.true,init=TRUE)
 summary(object=table2.K50.misspecified,true=table2.K50.true)     
 #+END_SRC
 
-#+RESULTS[<2020-11-21 12:55:47> 32e8f414a4d60a5d7c9912f06b02d6699a4eb58d]:
 #+begin_example
   Initial estimate      A0       A1     psi
 1             true  0.6731  0.52494  0.1482
@@ -251,7 +252,7 @@ summary(object=table2.K100,true=table2.K100.true,init=TRUE)
 summary(object=table2.K100,true=table2.K100.true)      
 #+END_SRC
 
-#+RESULTS[<2020-11-24 16:32:28> 1be3c2b58787b9ee11f2570cb7b3890ee86ea6d2]:
+
 #+begin_example
   Initial estimate        A0       A1       psi
 1             true  0.620108 0.490575  0.129533
@@ -277,7 +278,6 @@ summary(object=table2.K100.misspecified,true=table2.K100.true,init=TRUE)
 summary(object=table2.K100.misspecified,true=table2.K100.true)      
 #+END_SRC
 
-#+RESULTS[<2020-11-23 08:52:40> 98bcb85e55b1f7797623f4505855feef23c00357]:
 #+begin_example
   Initial estimate      A0       A1      psi
 1             true  0.6201  0.49057  0.12953
@@ -294,7 +294,7 @@ summary(object=table2.K100.misspecified,true=table2.K100.true)
 
 
 
-* Changing the sample size (=n=)
+* Changing the sample size (n)
 
 We here fix =K30= and decrease the sample size =n=. Note that the
 smaller =n= is, the fewer events are observed at each timepoint. 
@@ -310,7 +310,6 @@ summary(object=table1.K30.n1000.ltmle,true=table1.K30.true)
 summary(object=table1.K30.n1000.conTMLE,true=table1.K30.true)    
 #+END_SRC
 
-#+RESULTS[<2020-11-25 15:33:24> 660b3670d3cdba9afe2f7e51346d7786b29409b0]:
 #+begin_example
      LTMLE        A0     A1      psi
 1     true 0.6114444 0.4733  0.13811
@@ -338,7 +337,6 @@ summary(object=table1.K30.n500.ltmle,true=table1.K30.true)
 summary(object=table1.K30.n500.conTMLE,true=table1.K30.true)   
 #+END_SRC
 
-#+RESULTS[<2020-11-25 15:33:30> 438387073bdcac062a9a752ccf029b893af569bd]:
 #+begin_example
      LTMLE      A0     A1       psi
 1     true 0.61144 0.4733  0.138113
@@ -369,7 +367,6 @@ summary(object=table1.K30.n200.ltmle,true=table1.K30.true)
 summary(object=table1.K30.n200.conTMLE,true=table1.K30.true)    
 #+END_SRC
 
-#+RESULTS[<2020-11-25 15:33:45> 8fd266a6ce7b2b6279eaffbd7387d089e4266c07]:
 #+begin_example
      LTMLE     A0     A1      psi
 1     true 0.6114 0.4733  0.13811
