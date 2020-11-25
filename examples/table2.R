@@ -14,7 +14,14 @@
 #----------------------------------------------------------------------
 ## 
 ### Code:
-setwd("~/research/SoftWare/Web-appendix-continuous-time-TMLE/")
+if (system("echo $USER",intern=TRUE)%in%c("jhl781")){
+    setwd("/home/ifsv/jhl781/research/phd/berkeley/Web-appendix-continuous-time-TMLE/")
+    nc <- 40 # number of cores
+} else {
+    setwd("~/research/phd/berkeley/Web-appendix-continuous-time-TMLE/")
+    nc <- detectCores() - 1
+}
+
 source("./examples/load.R")
 
 if (TRUE){ # be careful setting the number of cores and to watch the memory for large values of K   
@@ -22,9 +29,13 @@ if (TRUE){ # be careful setting the number of cores and to watch the memory for 
     M <- 1000  # number of simulations
     nc <- 40   # number of cores
     n  <- 1000 # sample size
+
+    table2.K5.conTMLE <- runTMLE(no_cores=nc,K=5,misspecify.init = TRUE,M = M,n = n,max.iter=25,eps=0.0000001,seed=1920,progress.bar=-1)
+    saveRDS(table2.K5.conTMLE,file="./examples/table2-K5-conTMLE.rds")
     
-    table2.K30.conTMLE <- runTMLE(no_cores=nc,K=30,misspecify.init = TRUE,M = M,n = n,max.iter=25,eps=0.001,seed=1920,progress.bar=-1)
+    table2.K30.conTMLE <- runTMLE(no_cores=nc,K=30,misspecify.init = TRUE,M = M,n = n,max.iter=25,eps=0.0000001,seed=1920,progress.bar=-1)
     saveRDS(table2.K30.conTMLE,file="./examples/table2-K30-conTMLE.rds")
+
 }
 
 
