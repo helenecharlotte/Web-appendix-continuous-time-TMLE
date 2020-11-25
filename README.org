@@ -253,7 +253,6 @@ summary(object=table2.K50,true=table2.K50.true,init=TRUE)
 summary(object=table2.K50,true=table2.K50.true)     
 #+END_SRC
 
-#+RESULTS[<2020-11-25 16:00:48> 9036edfa695b66b342a304ca80afd6d04915c6d1]:
 #+begin_example
   Initial estimate        A0      A1      psi
 1             true  0.673141 0.52494  0.14820
