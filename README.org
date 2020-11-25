@@ -674,22 +674,6 @@ test2
 
 
 
-#+BEGIN_SRC R  :results output :exports both  :session *R* :cache yes  
-source("./examples/load.R")  
-table1.K5.true <- readRDS(file="./examples/change-setting-table1-K5-true.rds")
-table1.K5.conTMLE <- readRDS(file="./examples/change-setting-table1-K5-conTMLE.rds") 
-summary(object=table1.K5.conTMLE,true=table1.K5.true)   
-#+END_SRC
-
-#+begin_example
-   conTMLE        A0      A1      psi
-1     true  0.587248 0.57217  0.01508
-2     mean  0.586490 0.57343  0.01306
-3     bias -0.000757 0.00126 -0.00202
-4       se  0.023576 0.02308  0.03299
-5 coverage  0.945000 0.94800  0.94900
-6      MSE  0.024053 0.02306  0.03339
-#+end_example
 
 *  Dependencies 
 
