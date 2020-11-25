@@ -10,8 +10,8 @@ We provide the R-codes behind our empirical studies as described in
 the manuscript. This is for proof-of-concept so that anonymous users
 can reproduce the results. 
 
-Note that we are currently working hard on achieving user-friendly
-code which implements our method outside the limited setting of the
+Note that we are currently working on achieving user-friendly code
+which implements our method outside the limited setting of the
 empirical studies presented here. Stay tuned!
 
 Below we show how to load and use the code.
@@ -67,59 +67,6 @@ K5.conTMLE
 :    conTMLE.A0      se.A0   init.A0 se.init.A0 conTMLE.A1      se.A1   init.A1 se.init.A1
 : 1:  0.5118338 0.02427116 0.5065769 0.02427193  0.4152895 0.02232546 0.4043225 0.02233339
 
-With the =verbose=TRUE= option, we can see the targeting steps: 
-
-#+ATTR_LATEX: :options otherkeywords={}, deletekeywords={}
-#+BEGIN_SRC R  :results output :exports both  :session *R* :cache yes  
-# NOTE: you need to set the working directory 
-source("./examples/load.R")
-K5.conTMLE <- runTMLE(K=5, # number of time points
-                      n = 1000, # sample size
-                      misspecify.init = FALSE, # if TRUE, the initial outcome model is misspecified (see manuscript)
-                      seed=23, # control randomness of data simulation
-                      M = 1, # number of simulations
-                      verbose = TRUE, # get messages when running the code 
-                      no_cores=1) # number of computing cores   
-#+END_SRC
-
-#+begin_example
-
-Estimating psi with TMLE based on observed data:
-
-[1] "40.7% followed regime"
-[1] "Targeting step 1 -> 2"
-[1] "eps.hat=-0.00027863900464767"
-[1] "eic=-0.000993720127214605"
-[1] "Targeting step 2 -> 3"
-[1] "eps.hat=-0.000139387953486727"
-[1] "eic=-0.000925263680801293"
-[1] "43.9% followed regime"
-[1] "Targeting step 1 -> 2"
-[1] "eps.hat=0.0213511784663721"
-[1] "eic=0.00996849807589143"
-[1] "Targeting step 2 -> 3"
-[1] "eps.hat=0.0109564875668656"
-[1] "eic=0.00483497091785892"
-[1] "Targeting step 3 -> 4"
-[1] "eps.hat=0.00564918208232945"
-[1] "eic=0.00219353021543659"
-[1] "Targeting step 4 -> 5"
-[1] "eps.hat=0.00291977466491907"
-[1] "eic=0.000829773273472266"
-[1] "Targeting step 5 -> 6"
-[1] "eps.hat=0.00151095520925359"
-[1] "eic=0.000124438857138074"
-[1] "Targeting step 6 -> 7"
-[1] "eps.hat=0.000782404708210254"
-[1] "eic=-0.000240691497246047"
-[1] "Targeting step 7 -> 8"
-[1] "eps.hat=0.000405279644162037"
-[1] "eic=-0.000429797508755549"
-[1] "Targeting step 8 -> 9"
-[1] "eps.hat=0.000209967640814827"
-[1] "eic=-0.00052776200486349"
-#+end_example
-
 
 
 Our function =runLTMLE= applies =LTMLE= to data simulated from the
@@ -131,8 +78,8 @@ source("./examples/load.R")
 K5.ltmle <- runLTMLE(K=5,
                      misspecify.init = FALSE,
                      seed=23,
-                     M = 1, 
-                     n = 1000)
+                     M=1, 
+                     n=1000)
 K5.ltmle 
 #+END_SRC
 
@@ -157,25 +104,25 @@ source("./examples/load.R")
 table1.K5.true <- readRDS(file="./examples/table1-K5-true.rds")
 table1.K5.ltmle <- readRDS(file="./examples/table1-K5-ltmle.rds")
 table1.K5.conTMLE <- readRDS(file="./examples/table1-K5-conTMLE.rds")
-summary(object=table1.K5.ltmle,true=table1.K5.true)  
+summary(object=table1.K5.ltmle,true=table1.K5.true)   
 summary(object=table1.K5.conTMLE,true=table1.K5.true)   
 #+END_SRC
 
 #+begin_example
      LTMLE        A0       A1       psi
-1     true  0.559987 0.424507  0.135480
-2     mean  0.559747 0.424874  0.134874
-3     bias -0.000239 0.000367 -0.000607
-4       se  0.035922 0.028254  0.045702
-5 coverage  0.990000 0.981000  0.992000
-6      MSE  0.025099 0.023475  0.034414
-   conTMLE        A0       A1      psi
-1     true  0.559987 0.424507  0.13548
-2     mean  0.559625 0.425005  0.13462
-3     bias -0.000362 0.000498 -0.00086
-4       se  0.023723 0.023036  0.03307
-5 coverage  0.947000 0.948000  0.94200
-6      MSE  0.024532 0.023270  0.03390
+1     true  0.560078 0.424340  0.135737
+2     mean  0.559614 0.424824  0.134790
+3     bias -0.000463 0.000484 -0.000947
+4       se  0.024448 0.023424  0.033858
+5 coverage  0.949000 0.952000  0.941000
+6      MSE  0.024488 0.023217  0.033704
+   conTMLE         A0       A1     psi
+1     true  0.5600776  0.42434 0.13574
+2     mean  0.5600330  0.42302 0.13702
+3     bias -0.0000446 -0.00132 0.00128
+4       se  0.0236953  0.02305 0.03305
+5 coverage  0.9400000  0.94500 0.94700
+6      MSE  0.0244799  0.02318 0.03338
 #+end_example
 
 
@@ -185,26 +132,58 @@ source("./examples/load.R")
 table1.K30.true <- readRDS(file="./examples/table1-K30-true.rds")
 table1.K30.ltmle <- readRDS(file="./examples/table1-K30-ltmle.rds")
 table1.K30.conTMLE <- readRDS(file="./examples/table1-K30-conTMLE.rds")
-summary(object=table1.K30.ltmle,true=table1.K30.true) 
+summary(object=table1.K30.ltmle,true=table1.K30.true)  
 summary(object=table1.K30.conTMLE,true=table1.K30.true)   
 #+END_SRC
 
 #+begin_example
-     LTMLE      A0      A1       psi
-1     true 0.61143 0.47358  0.137851
-2     mean 0.61290 0.47587  0.137029
-3     bias 0.00147 0.00229 -0.000821
-4       se 0.07734 0.05712  0.096144
-5 coverage 1.00000 0.99900  0.999000
-6      MSE 0.03330 0.03448  0.049831
-   conTMLE      A0      A1      psi
-1     true 0.61143 0.47358  0.13785
-2     mean 0.61156 0.47492  0.13664
-3     bias 0.00013 0.00134 -0.00121
-4       se 0.02498 0.02464  0.03508
-5 coverage 0.94900 0.94500  0.95100
-6      MSE 0.02513 0.02470  0.03467
+     LTMLE        A0     A1      psi
+1     true 0.6114444 0.4733  0.13811
+2     mean 0.6114690 0.4757  0.13574
+3     bias 0.0000246 0.0024 -0.00238
+4       se 0.0362204 0.0356  0.05076
+5 coverage 0.9730000 0.9650  0.97200
+6      MSE 0.0348085 0.0343  0.04821
+   conTMLE        A0      A1       psi
+1     true  0.611444 0.47333  0.138113
+2     mean  0.610929 0.47372  0.137208
+3     bias -0.000515 0.00039 -0.000905
+4       se  0.024992 0.02465  0.035105
+5 coverage  0.953000 0.94200  0.956000
+6      MSE  0.024627 0.02474  0.034110
 #+end_example
+
+
+
+
+
+*** K=50
+#+BEGIN_SRC R  :results output :exports both  :session *R* :cache yes  
+source("./examples/load.R")
+table1.K50.true <- readRDS(file="./examples/table1-K50-true.rds")
+table1.K50.ltmle <- readRDS(file="./examples/table1-K50-ltmle.rds")
+table1.K50.conTMLE <- readRDS(file="./examples/table1-K50-conTMLE.rds")
+summary(object=table1.K50.ltmle,true=table1.K50.true)   
+summary(object=table1.K50.conTMLE,true=table1.K50.true)     
+#+END_SRC
+
+#+begin_example
+     LTMLE      A0      A1     psi
+1     true 0.67314 0.52494 0.14820
+2     mean 0.67690 0.52741 0.14948
+3     bias 0.00376 0.00247 0.00128
+4       se 0.03690 0.03705 0.05229
+5 coverage 0.98200 0.98600 0.98600
+6      MSE 0.02661 0.02802 0.03934
+   conTMLE        A0       A1      psi
+1     true  0.673141 0.524940  0.14820
+2     mean  0.672635 0.525574  0.14706
+3     bias -0.000506 0.000634 -0.00114
+4       se  0.023630 0.024317  0.03391
+5 coverage  0.944000 0.952000  0.95300
+6      MSE  0.023897 0.024081  0.03464
+#+end_example
+
 
 
 
@@ -233,6 +212,180 @@ summary(object=table2.K30.misspecified,true=table2.K30.true)
 6      MSE  0.0254086 0.024506  0.034669
 #+end_example
 
+
+
+
+*** K=50 (misspecified initial estimator)
+#+BEGIN_SRC R  :results output   :exports both  :session *R* :cache yes  
+source("./examples/load.R")
+table2.K50.true <- readRDS(file="./examples/table1-K50-true.rds")
+table2.K50.misspecified <- readRDS(file="./examples/table2-K50-conTMLE.rds")
+summary(object=table2.K50.misspecified,true=table2.K50.true,init=TRUE)
+summary(object=table2.K50.misspecified,true=table2.K50.true)     
+#+END_SRC
+
+#+RESULTS[<2020-11-21 12:55:47> 32e8f414a4d60a5d7c9912f06b02d6699a4eb58d]:
+#+begin_example
+  Initial estimate      A0       A1     psi
+1             true  0.6731  0.52494  0.1482
+2             mean  0.6549  0.52002  0.1348
+3             bias -0.0183 -0.00492 -0.0134
+   conTMLE        A0         A1      psi
+1     true  0.673141  0.5249402  0.14820
+2     mean  0.672230  0.5249091  0.14732
+3     bias -0.000911 -0.0000311 -0.00088
+4       se  0.023627  0.0243455  0.03393
+5 coverage  0.952000  0.9490000  0.95500
+6      MSE  0.023576  0.0241819  0.03324
+#+end_example
+
+
+
+
+*** K=100 (correctly speficied initial estimator)
+#+BEGIN_SRC R  :results output   :exports both  :session *R* :cache yes  
+source("./examples/load.R")
+table2.K100.true <- readRDS(file="./examples/table1-K100-true.rds")
+table2.K100 <- readRDS(file="./examples/table1-K100-conTMLE.rds")
+summary(object=table2.K100,true=table2.K100.true,init=TRUE)
+summary(object=table2.K100,true=table2.K100.true)      
+#+END_SRC
+
+#+RESULTS[<2020-11-24 16:32:28> 1be3c2b58787b9ee11f2570cb7b3890ee86ea6d2]:
+#+begin_example
+  Initial estimate        A0       A1       psi
+1             true  0.620108 0.490575  0.129533
+2             mean  0.619557 0.490732  0.128824
+3             bias -0.000551 0.000158 -0.000709
+   conTMLE         A0       A1       psi
+1     true  0.6201078 0.490575  0.129533
+2     mean  0.6200236 0.491328  0.128696
+3     bias -0.0000842 0.000753 -0.000837
+4       se  0.0232213 0.024145  0.033499
+5 coverage  0.9420000 0.954000  0.945000
+6      MSE  0.0247149 0.023937  0.034581
+#+end_example
+
+
+
+*** K=100 (misspecified initial estimator)
+#+BEGIN_SRC R  :results output   :exports both  :session *R* :cache yes  
+source("./examples/load.R")
+table2.K100.true <- readRDS(file="./examples/table1-K100-true.rds")
+table2.K100.misspecified <- readRDS(file="./examples/table2-K100-conTMLE.rds")
+summary(object=table2.K100.misspecified,true=table2.K100.true,init=TRUE)
+summary(object=table2.K100.misspecified,true=table2.K100.true)      
+#+END_SRC
+
+#+RESULTS[<2020-11-23 08:52:40> 98bcb85e55b1f7797623f4505855feef23c00357]:
+#+begin_example
+  Initial estimate      A0       A1      psi
+1             true  0.6201  0.49057  0.12953
+2             mean  0.6108  0.48277  0.12804
+3             bias -0.0093 -0.00781 -0.00149
+   conTMLE       A0        A1       psi
+1     true  0.62011  0.490575  0.129533
+2     mean  0.61895  0.489643  0.129311
+3     bias -0.00115 -0.000931 -0.000222
+4       se  0.02329  0.024209  0.033595
+5 coverage  0.93600  0.946000  0.944000
+6      MSE  0.02404  0.024469  0.033991
+#+end_example
+
+
+
+* Changing the sample size (=n=)
+
+We here fix =K30= and decrease the sample size =n=. Note that the
+smaller =n= is, the fewer events are observed at each timepoint. 
+
+** n=1000
+
+#+BEGIN_SRC R  :results output :exports both  :session *R* :cache yes  
+source("./examples/load.R") 
+table1.K30.true <- readRDS(file="./examples/table1-K30-true.rds")
+table1.K30.n1000.ltmle <- readRDS(file="./examples/table1-K30-ltmle.rds")
+table1.K30.n1000.conTMLE <- readRDS(file="./examples/table1-K30-conTMLE.rds")
+summary(object=table1.K30.n1000.ltmle,true=table1.K30.true)    
+summary(object=table1.K30.n1000.conTMLE,true=table1.K30.true)    
+#+END_SRC
+
+#+RESULTS[<2020-11-25 15:33:24> 660b3670d3cdba9afe2f7e51346d7786b29409b0]:
+#+begin_example
+     LTMLE        A0     A1      psi
+1     true 0.6114444 0.4733  0.13811
+2     mean 0.6114690 0.4757  0.13574
+3     bias 0.0000246 0.0024 -0.00238
+4       se 0.0362204 0.0356  0.05076
+5 coverage 0.9730000 0.9650  0.97200
+6      MSE 0.0348085 0.0343  0.04821
+   conTMLE        A0      A1       psi
+1     true  0.611444 0.47333  0.138113
+2     mean  0.610929 0.47372  0.137208
+3     bias -0.000515 0.00039 -0.000905
+4       se  0.024992 0.02465  0.035105
+5 coverage  0.953000 0.94200  0.956000
+6      MSE  0.024627 0.02474  0.034110
+#+end_example
+
+** n=500
+#+BEGIN_SRC R  :results output :exports both  :session *R* :cache yes  
+source("./examples/load.R") 
+table1.K30.true <- readRDS(file="./examples/table1-K30-true.rds")
+table1.K30.n500.ltmle <- readRDS(file="./examples/table1-K30-n500-ltmle.rds")
+table1.K30.n500.conTMLE <- readRDS(file="./examples/table1-K30-n500-conTMLE.rds")
+summary(object=table1.K30.n500.ltmle,true=table1.K30.true)      
+summary(object=table1.K30.n500.conTMLE,true=table1.K30.true)   
+#+END_SRC
+
+#+RESULTS[<2020-11-25 15:33:30> 438387073bdcac062a9a752ccf029b893af569bd]:
+#+begin_example
+     LTMLE      A0     A1       psi
+1     true 0.61144 0.4733  0.138113
+2     mean 0.61590 0.4784  0.137468
+3     bias 0.00446 0.0051 -0.000645
+4       se 0.04730 0.0460  0.066001
+5 coverage 0.98700 0.9720  0.984000
+6      MSE 0.03963 0.0415  0.056354
+   conTMLE        A0       A1      psi
+1     true  0.611444  0.47333 0.138113
+2     mean  0.610856  0.47201 0.138850
+3     bias -0.000588 -0.00133 0.000737
+4       se  0.035391  0.03481 0.049639
+5 coverage  0.956000  0.94700 0.951000
+6      MSE  0.034403  0.03445 0.048263
+#+end_example
+
+
+
+
+** n=200
+#+BEGIN_SRC R  :results output :exports both  :session *R* :cache yes  
+source("./examples/load.R") 
+table1.K30.true <- readRDS(file="./examples/table1-K30-true.rds")
+table1.K30.n200.ltmle <- readRDS(file="./examples/table1-K30-n200-ltmle.rds")
+table1.K30.n200.conTMLE <- readRDS(file="./examples/table1-K30-n200-conTMLE.rds")
+summary(object=table1.K30.n200.ltmle,true=table1.K30.true)      
+summary(object=table1.K30.n200.conTMLE,true=table1.K30.true)    
+#+END_SRC
+
+#+RESULTS[<2020-11-25 15:33:45> 8fd266a6ce7b2b6279eaffbd7387d089e4266c07]:
+#+begin_example
+     LTMLE     A0     A1      psi
+1     true 0.6114 0.4733  0.13811
+2     mean 0.6216 0.4849  0.13672
+3     bias 0.0101 0.0115 -0.00139
+4       se 0.1298 0.1227  0.17865
+5 coverage 0.9960 0.9930  0.99900
+6      MSE 0.0556 0.0556  0.07982
+   conTMLE     A0       A1      psi
+1     true 0.6114 0.473331 0.138113
+2     mean 0.6128 0.474259 0.138582
+3     bias 0.0014 0.000928 0.000469
+4       se 0.0556 0.055231 0.078336
+5 coverage 0.9490 0.936000 0.940000
+6      MSE 0.0556 0.056995 0.079472
+#+end_example
 
 
 * The simulation scenario
@@ -456,6 +609,24 @@ test2
 :    conTMLE.A0      se.A0   init.A0 se.init.A0 conTMLE.A1      se.A1   init.A1 se.init.A1
 : 1:   0.571716 0.05475289 0.5749211 0.05476379   0.580153 0.05175538 0.5577254 0.05184291
 
+
+
+#+BEGIN_SRC R  :results output :exports both  :session *R* :cache yes  
+source("./examples/load.R")  
+table1.K5.true <- readRDS(file="./examples/change-setting-table1-K5-true.rds")
+table1.K5.conTMLE <- readRDS(file="./examples/change-setting-table1-K5-conTMLE.rds") 
+summary(object=table1.K5.conTMLE,true=table1.K5.true)   
+#+END_SRC
+
+#+begin_example
+   conTMLE        A0      A1      psi
+1     true  0.587248 0.57217  0.01508
+2     mean  0.586490 0.57343  0.01306
+3     bias -0.000757 0.00126 -0.00202
+4       se  0.023576 0.02308  0.03299
+5 coverage  0.945000 0.94800  0.94900
+6      MSE  0.024053 0.02306  0.03339
+#+end_example
 
 *  Dependencies 
 
