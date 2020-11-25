@@ -23,6 +23,7 @@ runTMLE <- function(K=10,
                     max.iter=25,  # maximal number of iterations
                     eps = 0.0001, # convergence criterion
                     progress.bar=3, # show progress
+                    verbose=FALSE, # get messages when running the code
                     ... # arguments passed to sim.data
                     ){ 
     message("\nEstimating psi with TMLE based on observed data:\n")
@@ -42,6 +43,7 @@ runTMLE <- function(K=10,
                               smooth.initial=TRUE,
                               max.iter=max.iter,
                               eps=eps, dropin=FALSE,
+                              verbose=verbose, 
                               intervention.A0=function(L0, A0) logit(1*(A0==0)),
                               intervention.A=function(L0, A0, L.prev, A.prev, A) logit(1*(A==0)),
                               misspecify.init=misspecify.init)
@@ -50,6 +52,7 @@ runTMLE <- function(K=10,
                               smooth.initial=TRUE,
                               max.iter=max.iter,
                               eps=eps, dropin=FALSE,
+                              verbose=verbose, 
                               intervention.A0=function(L0, A0) logit(1*(A0==1)),
                               intervention.A=function(L0, A0, L.prev, A.prev, A) logit(1*(A==1)),
                               misspecify.init=misspecify.init)
