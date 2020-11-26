@@ -79,17 +79,17 @@ same data-generating distribution.
 # NOTE: you need to set the working directory 
 source("./examples/load.R")
 K5.ltmle <- runLTMLE(K=5,
-                     misspecify.init = FALSE,
                      seed=23,
                      M=1, 
-                     n=1000)
+                     n=1000) 
 K5.ltmle 
 #+END_SRC
 
 : 
 : Estimating psi with LTMLE based on observed data:
 :     ltmle.A0      sd.A0  ltmle.A1      sd.A1
-: 1: 0.5089093 0.03729756 0.4120871 0.02770643
+: 1: 0.5110533 0.02429905 0.4148675 0.02307705
+
 
 
 * Making of tables 1 and 2
@@ -218,29 +218,28 @@ summary(object=table2.K30,true=table2.K30.true)
 
 
 *** K=30 (misspecified initial estimator)
+
 #+BEGIN_SRC R  :results output   :exports both  :session *R* :cache yes  
 source("./examples/load.R")
 table2.K30.true <- readRDS(file="./examples/table1-K30-true.rds")
 table2.K30.misspecified <- readRDS(file="./examples/table2-K30-conTMLE.rds")
-summary(object=table2.K30.misspecified,true=table2.K30.true,init=TRUE)
+summary(object=table2.K30.misspecified,true=table2.K30.true,init=TRUE) 
 summary(object=table2.K30.misspecified,true=table2.K30.true)    
 #+END_SRC
 
 #+begin_example
   Initial estimate      A0      A1     psi
-1             true  0.6114 0.47358  0.1379
-2             mean  0.5940 0.47573  0.1183
-3             bias -0.0174 0.00216 -0.0196
-   conTMLE         A0       A1       psi
-1     true  0.6114291 0.473578  0.137851
-2     mean  0.6113686 0.474011  0.137358
-3     bias -0.0000605 0.000433 -0.000493
-4       se  0.0260242 0.024016  0.035412
-5 coverage  0.9580000 0.945000  0.953000
-6      MSE  0.0254086 0.024506  0.034669
+1             true  0.6114 0.47333  0.1381
+2             mean  0.5935 0.47448  0.1191
+3             bias -0.0179 0.00115 -0.0191
+   conTMLE        A0        A1      psi
+1     true  0.611444 0.4733314  0.13811
+2     mean  0.611025 0.4734016  0.13762
+3     bias -0.000419 0.0000702 -0.00049
+4       se  0.024957 0.0246859  0.03510
+5 coverage  0.944000 0.9580000  0.93600
+6      MSE  0.026123 0.0236517  0.03542
 #+end_example
-
-
 
 
 
@@ -251,7 +250,7 @@ source("./examples/load.R")
 table2.K50.true <- readRDS(file="./examples/table1-K50-true.rds")
 table2.K50 <- readRDS(file="./examples/table1-K50-conTMLE.rds")
 summary(object=table2.K50,true=table2.K50.true,init=TRUE)
-summary(object=table2.K50,true=table2.K50.true)     
+summary(object=table2.K50,true=table2.K50.true)      
 #+END_SRC
 
 #+begin_example
@@ -266,20 +265,6 @@ summary(object=table2.K50,true=table2.K50.true)
 4       se  0.023630 0.024317  0.03391
 5 coverage  0.944000 0.952000  0.95300
 6      MSE  0.023897 0.024081  0.03464
-#+end_example
-
-#+begin_example
-  Initial estimate      A0       A1     psi
-1             true  0.6731  0.52494  0.1482
-2             mean  0.6549  0.52002  0.1348
-3             bias -0.0183 -0.00492 -0.0134
-   conTMLE        A0         A1      psi
-1     true  0.673141  0.5249402  0.14820
-2     mean  0.672230  0.5249091  0.14732
-3     bias -0.000911 -0.0000311 -0.00088
-4       se  0.023627  0.0243455  0.03393
-5 coverage  0.952000  0.9490000  0.95500
-6      MSE  0.023576  0.0241819  0.03324
 #+end_example
 
 
@@ -481,7 +466,7 @@ format needed for =ltmle=.
 
 #+ATTR_LATEX: :options otherkeywords={}, deletekeywords={}
 #+BEGIN_SRC R  :results output   :exports both  :session *R* :cache yes  
-sim.data(n=10,K=3,seed=3)     
+sim.data(n=10,K=3,seed=3)      
 #+END_SRC
 
 #+begin_example
@@ -505,7 +490,7 @@ the monitoring times:
 
 #+ATTR_LATEX: :options otherkeywords={}, deletekeywords={}
 #+BEGIN_SRC R  :results output   :exports both  :session *R* :cache yes  
-print.long.format(sim.data(n=5,K=50,seed=10))        
+print.long.format(sim.data(n=5,K=50,seed=10))         
 #+END_SRC
 
 #+begin_example
@@ -530,7 +515,8 @@ print.long.format(sim.data(n=5,K=50,seed=10))
 18:  4 18 0.6666667  1 1 0 1 1    0    0
 19:  5  7 1.0000000  0 0 0 0 1    0    0
 #+end_example
- 
+
+
 In our current setting, all dependencies between the processes are
 limited to the previous values and the baseline values. Note also that
 the specific parameter constellation depends on the value of =K=
