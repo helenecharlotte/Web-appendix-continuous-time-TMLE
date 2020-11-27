@@ -467,12 +467,12 @@ process (=Ak=) as well as the censoring (=Ck=) and the outcome (=Yk=)
 processes are then generated in a loop through the values =1:K= where
 at each day it is first decided if there is a treatment or a covariate
 monitoring time or both, dependent on the subject specific history. If
-there is a treatment (covariate) monitoring time, a new treatment
-value (covariate value) is drawn conditional on the subject specific
-history, else the current value is carried forward. The value =Yk+1=
-contains the status of the outcome at the end of the study period. The
-=sim.data= function returns the simulated data in wide format; this is
-the format needed for =ltmle=.
+the subject has a treatment or covariate monitoring time (or both) at
+a given day, a new treatment value or covariate value is drawn
+conditional on the subject specific history, else the current value is
+carried forward. The value =Yk+1= contains the status of the outcome
+at the end of the study period. The =sim.data= function returns the
+simulated data in wide format; this is the format needed for =ltmle=.
 
 #+ATTR_LATEX: :options otherkeywords={}, deletekeywords={}
 #+BEGIN_SRC R  :results output   :exports both  :session *R* :cache yes  
