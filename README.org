@@ -579,7 +579,7 @@ need to modify the arguments of the =sim.data= function. You have to
 be careful when changing the simulation setting. For example, just
 changing the distribution of =A= given the history (does not change
 the true values of the target parameter, but) may result in violation
-of positivity as in the following example shows (see the warning
+of the positivity assumption as in the following example shows (see the warning
 message):
 
 #+BEGIN_SRC R  :results output   :exports both  :session *R* :cache yes  
