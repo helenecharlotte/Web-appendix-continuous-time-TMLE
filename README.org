@@ -10,18 +10,17 @@ We provide the R-codes behind our empirical studies as described in
 the manuscript. This is for proof-of-concept so that anonymous users
 can reproduce the results. 
 
-Note that we are currently working on achieving user-friendly code
+Note that we are currently working on user-friendly code
 which implements our method outside the limited setting of the
 empirical studies presented here. Stay tuned!
 
-Below we show how to load and use the code.
-
+Below we show examples of how to load and use the R-code.
 
 We also describe the simulation scenario in terms of the actual R-code
 and indicate how one can change the code to generate different
 scenarios.
 
-*Important:* For simulations of many time points, i.e., with K=100,
+*Important:* For simulation scenarios with many time points, i.e., with K=100,
 the current implementation requires a computer with a rather large
 memory.
 
@@ -46,10 +45,12 @@ memory.
 
 * Running the code
 
-The following code uses one computing core to calculate the estimates
-of conTMLE (and LTMLE) using a single simulated dataset. The code that
-produces the empirical results of Table 1 and Table 2 of the
-manuscript are shown longer down.
+The following example uses one computing core to calculate the conTMLE
+estimate (the method described in our manuscript) and the [[https://cran.r-project.org/web/packages/ltmle/index.html][LTMLE]]
+estimate using a single simulated dataset. The code that produces the
+empirical results of Table 1 and Table 2 of the manuscript are shown
+longer down. To run the code you should clone the github repository
+and set the working directory according to your setting.
 
 #+ATTR_LATEX: :options otherkeywords={}, deletekeywords={}
 #+BEGIN_SRC R  :results output :exports both  :session *R* :cache yes  
@@ -70,10 +71,8 @@ K5.conTMLE
 : 1:  0.5122824 0.02363591 0.512352  0.4153924 0.02281688 0.4048561
 
 
-
-
-Our function =runLTMLE= applies =LTMLE= to data simulated from the
-same data-generating distribution. 
+The function =runLTMLE= applies =LTMLE= to the data simulated from the
+same data-generating distribution as used by the function =runTMLE=.
 
 #+BEGIN_SRC R  :results output :exports both  :session *R* :cache yes  
 # NOTE: you need to set the working directory 
@@ -91,15 +90,16 @@ K5.ltmle
 : 1: 0.5110533 0.02429905 0.4148675 0.02307705
 
 
-
 * Making of tables 1 and 2
+
+The following code produces results as shown in tables 1 and 2 in our
+manuscript.
 
 ** Table 1
 
-We provide code that produces results for =K=5= and =K=30= for LTMLE
-and our new method, conTMLE. The code in files [[examples/table1.R]] and
-[[examples/table2.R]] generate the following results:
-
+The code needs some time to run and is therefore given in a separate
+file, [[examples/table1.R]], where the following results are obtained and
+saved as =rds=.
 
 *** K=5
 #+BEGIN_SRC R  :results output :exports both  :session *R* :cache yes  
@@ -191,6 +191,10 @@ summary(object=table1.K50.conTMLE,true=table1.K50.true)
 
 
 ** Table 2
+
+The code needs some time to run and is therefore given in a separate
+file, [[examples/table2.R]], where the following results are obtained and
+saved as =rds=.
 
 
 *** K=30 (correctly specified initial estimator)
@@ -347,8 +351,10 @@ summary(object=table2.K100.misspecified,true=table2.K100.true)
 
 * Changing the sample size (n)
 
-We here fix =K30= and decrease the sample size =n=. Note that the
-smaller =n= is, the fewer events are observed at each timepoint. 
+It is relatively easy to evaluate the behavior at different sample
+sizes. For example, we can for =K=30= decrease the sample size from
+=n=1000= to =n=500= and =n=200=, respectively. Note that the smaller
+=n= is, the fewer events are observed at each timepoint.
 
 ** n=1000
 
@@ -438,31 +444,35 @@ summary(object=table1.K30.n200.conTMLE,true=table1.K30.true)
 
 * The simulation scenario
 
-
 ** Overall description
  
-We consider a setting where subjects of a population are followed for
-=K= days of follow-up time. On any given day, any subject may change
-treatment, covariates, may be lost to follow-up (right-censored) or
-may experience the outcome of interest. Both the treatment and the
-censoring mechanisms are subject to time-dependent confounding.  The
-data are simulated such that the number of monitoring times per
-subject are approximately the same across different =K=. Thus, the
-larger =K= is, the less events are observed at single monitoring
-times.
+We consider a setting with =K= days in a fixed study period. The
+individual subjects of a simulated population are followed at subject
+specific random monitoring times in the given study period. On any
+given monitoring time, a subject may change treatment and covariates,
+and can also become lost to follow-up (right-censored) or experience
+the outcome of interest. For the simulation results presented in our
+manuscript, we use a set of regression equations and parameters such
+that both the treatment and the censoring mechanisms are subject to
+time-dependent confounding.
 
 ** Current setting
 
-
 The current simulation setting is defined by the function =sim.data=
-(see file [[R/sim-data.R]]). The way we simulate the data is best
-described with the following example. Baseline covariates =L0= and
-treatment =A0= are generated first. Followup values of both processes
-(=Lk=, =Ak=) as well as censoring (=Ck=) and outcome (=Yk=) processes
-are then generated in a loop through the values =1:K=. The value
-=Yk+1= contains the status of the outcome at the end of followup. The
-=sim.data= function outputs the data in wide format; this is the
-format needed for =ltmle=.
+(see file [[R/sim-data.R]]) in form of default values for the
+arguments. The way we simulate the data is best described with the
+following example. Baseline covariates =L0= and treatment =A0= are
+generated first. Values of the covariate (=Lk=) and the treatment
+process (=Ak=) as well as the censoring (=Ck=) and the outcome (=Yk=)
+processes are then generated in a loop through the values =1:K= where
+at each day it is first decided if there is a treatment or a covariate
+monitoring time or both, dependent on the subject specific history. If
+there is a treatment (covariate) monitoring time, a new treatment
+value (covariate value) is drawn conditional on the subject specific
+history, else the current value is carried forward. The value =Yk+1=
+contains the status of the outcome at the end of the study period. The
+=sim.data= function returns the simulated data in wide format; this is
+the format needed for =ltmle=.
 
 #+ATTR_LATEX: :options otherkeywords={}, deletekeywords={}
 #+BEGIN_SRC R  :results output   :exports both  :session *R* :cache yes  
@@ -483,10 +493,9 @@ sim.data(n=10,K=3,seed=3)
 10: 10 0.3333333  0  0     0  0     0  0  0  0     0  0     0  0  0  0     0  0     1  0  0  0
 #+end_example
 
-Our estimation function =conTMLE= transform the data to long format
-which is more suitable when =K= is large since we only need a row at
-the monitoring times:
-
+Our estimation function =conTMLE= transform the data to long format,
+which is more suitable when =K= is large, since we only need a row at
+each of the subject specific monitoring times:
 
 #+ATTR_LATEX: :options otherkeywords={}, deletekeywords={}
 #+BEGIN_SRC R  :results output   :exports both  :session *R* :cache yes  
@@ -518,11 +527,11 @@ print.long.format(sim.data(n=5,K=50,seed=10))
 
 
 In our current setting, all dependencies between the processes are
-limited to the previous values and the baseline values. Note also that
-the specific parameter constellation depends on the value of =K=
-(needed for the number of monitoring times per subject to be
-approximately the same across different =K=).
-
+limited to the previous/current values and the baseline values. Note
+also that the specific parameter constellation depends on the value of
+=K=. This is how we control the number of monitoring times per
+subject, and achieve it to be approximately the same across different
+values of =K=.
 
 #+BEGIN_SRC R  :results output raw drawer  :exports code  :session *R* :cache yes  
 # Step 1: baseline covariate 
@@ -565,14 +574,13 @@ form.Y <- function(L0, L.prev, A.prev, A0, dN.A.prev) {
 
 ** Changing the current setting
 
-
-
-We have to be careful when changing the simulation setting. For
-example, just changing the distribution of =A= given the history (does
-not change the true values of the target parameter, but) may result in
-positivity violation as in the following (as signaled by the warning
+To change the simulation setting beyond variations of =K= and =n= you
+need to modify the arguments of the =sim.data= function. You have to
+be careful when changing the simulation setting. For example, just
+changing the distribution of =A= given the history (does not change
+the true values of the target parameter, but) may result in violation
+of positivity as in the following example shows (see the warning
 message):
-
 
 #+BEGIN_SRC R  :results output   :exports both  :session *R* :cache yes  
 source("./examples/load.R")
@@ -604,11 +612,9 @@ In conTMLE(dt, targeting = 2, smooth.initial = TRUE, max.iter = max.iter,  :
 1:  0.5294796 0.0369986 0.5642535   0.289432 0.05778478 0.3153624
 #+end_example
 
-
-
 The positivity violations result in considerably inaccurate
-inference. Here we have repeated the simulations above =M=1000= times
-to illustrate this:
+inference. To show this we have repeated the analysis by simulating
+=M=1000= times:
 
 #+BEGIN_SRC R  :results output :exports both  :session *R* :cache yes  
 source("./examples/load.R") 
@@ -625,11 +631,9 @@ summary(object=table1.K5.conTMLE,true=table1.K5.true)
 : 5 coverage  0.58800 0.95400  0.62800
 : 6      MSE  0.13922 0.02276  0.14147
 
-
-
-In the following, we instead as an example remove the direct effect
-(note that there is still an effect through the =L= process) of the
-treatment on outcome:
+In the following, we remove the direct effect of =A= (note that there
+is still an effect through the =L= process) of the treatment on
+outcome:
 
 #+BEGIN_SRC R  :results output   :exports both  :session *R* :cache yes  
 source("./examples/load.R")
@@ -657,9 +661,6 @@ test2
 : Estimating psi with TMLE based on observed data:
 :    conTMLE.A0      se.A0   init.A0 conTMLE.A1      se.A1  init.A1
 : 1:  0.5768492 0.05338095 0.5877601  0.5846994 0.05433202 0.555641
-
-
-
 
 *  Dependencies 
 
