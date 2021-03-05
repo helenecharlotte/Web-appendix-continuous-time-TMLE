@@ -4,8 +4,6 @@
 This is the web-appendix of our manuscript entitled 
 /Continuous-time targeted minimum loss-based estimation of estimation of intervention-specific mean outcomes./
 
-=[[provide link to arXiv]]=
-
 We provide the R-codes behind our empirical studies as described in
 the manuscript. This is for proof-of-concept so that anonymous users
 can reproduce the results. 
