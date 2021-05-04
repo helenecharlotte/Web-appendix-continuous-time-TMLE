@@ -24,6 +24,7 @@ memory.
 
 * Overview
 
+- [[https://github.com/helenecharlotte/Web-appendix-continuous-time-TMLE/#Dependencies][R version and package versions]]  
 - [[https://github.com/helenecharlotte/Web-appendix-continuous-time-TMLE/#running-the-code][Running the code]]
 
 - [[https://github.com/helenecharlotte/Web-appendix-continuous-time-TMLE/tree/main#making-of-tables-1-and-2][Making of Tables 1 and 2]]
