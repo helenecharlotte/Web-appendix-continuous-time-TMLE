@@ -93,10 +93,12 @@ Publish::org(data.table(Package=pp,Version=sapply(pp,function(x) as.character(pa
 
 The following example uses one computing core to calculate the conTMLE
 estimate (the method described in our manuscript) and the [[https://cran.r-project.org/web/packages/ltmle/index.html][LTMLE]]
-estimate using a single simulated dataset. The code that produces the
-empirical results of Table 1 and Table 2 of the manuscript are shown
-longer down. To run the code you should clone the github repository
-and set the working directory according to your setting.
+estimate using a single simulated dataset.  To run on multiple cores
+in parallel users may set =no_cores= to the number of cores. The code
+that produces the empirical results of Table 1 and Table 2 of the
+manuscript are shown longer down. To run the code you should clone the
+github repository and set the working directory according to your
+setting.
 
 #+ATTR_LATEX: :options otherkeywords={}, deletekeywords={}
 #+BEGIN_SRC R  :results output :exports both  :session *R* :cache yes  
